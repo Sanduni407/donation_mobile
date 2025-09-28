@@ -1,0 +1,254 @@
+import { AppwriteID, databases, storage } from './appwrite';
+
+const DATABASE_ID = '68d797e8002551ac5a86';
+const COMMUNITY_POSTS_TABLE_ID = 'communityposts';
+const BUCKET_ID = '68d79ed4003b71ab46cd'; // Same bucket for community post images
+
+export interface CommunityPost {
+  $id: string;
+  volunteerId: string;
+  volunteerName: string;
+  caption: string;
+  eventTitle: string;
+  description: string;
+  imageUrl?: string;
+  date: string;
+  time: string;
+  venue: string;
+  categories: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CommunityPostData = {
+  volunteerId: string;
+  volunteerName: string;
+  caption: string;
+  eventTitle: string;
+  description: string;
+  imageUrl?: string;
+  date: string;
+  time: string;
+  venue: string;
+  categories: string[]; // ['food', 'stationery', 'clothing', 'household']
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+// Create a new community post
+export const createCommunityPost = async (data: CommunityPostData): Promise<CommunityPost> => {
+  try {
+    const postDataWithDefaults = {
+      ...data,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('Creating community post:', postDataWithDefaults);
+    
+    const response = await databases.createDocument(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID,
+      AppwriteID.unique(),
+      postDataWithDefaults
+    );
+    
+    return {
+      $id: response.$id,
+      volunteerId: response.volunteerId,
+      volunteerName: response.volunteerName,
+      caption: response.caption,
+      eventTitle: response.eventTitle,
+      description: response.description,
+      imageUrl: response.imageUrl,
+      date: response.date,
+      time: response.time,
+      venue: response.venue,
+      categories: response.categories || [],
+      createdAt: response.createdAt,
+      updatedAt: response.updatedAt
+    } as CommunityPost;
+  } catch (error: any) {
+    console.error('Error creating community post:', error);
+    throw error;
+  }
+};
+
+// Get posts by specific volunteer
+export const getPostsByVolunteer = async (volunteerId: string): Promise<CommunityPost[]> => {
+  try {
+    const response = await databases.listDocuments(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID
+    );
+    
+    // Filter posts by volunteerId and convert to CommunityPost[]
+    const userPosts = response.documents
+      .filter(post => post.volunteerId === volunteerId)
+      .map(post => ({
+        $id: post.$id,
+        volunteerId: post.volunteerId,
+        volunteerName: post.volunteerName,
+        caption: post.caption,
+        eventTitle: post.eventTitle,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        date: post.date,
+        time: post.time,
+        venue: post.venue,
+        categories: post.categories || [],
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt
+      } as CommunityPost));
+    
+    // Sort by creation date (newest first)
+    const sortedPosts = userPosts.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    
+    return sortedPosts;
+  } catch (error) {
+    console.error('Error fetching volunteer posts:', error);
+    throw error;
+  }
+};
+
+// Update community post
+export const updateCommunityPost = async (postId: string, updateData: Partial<CommunityPostData>): Promise<CommunityPost> => {
+  try {
+    const dataWithUpdate = {
+      ...updateData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    const response = await databases.updateDocument(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID,
+      postId,
+      dataWithUpdate
+    );
+    
+    return {
+      $id: response.$id,
+      volunteerId: response.volunteerId,
+      volunteerName: response.volunteerName,
+      caption: response.caption,
+      eventTitle: response.eventTitle,
+      description: response.description,
+      imageUrl: response.imageUrl,
+      date: response.date,
+      time: response.time,
+      venue: response.venue,
+      categories: response.categories || [],
+      createdAt: response.createdAt,
+      updatedAt: response.updatedAt
+    } as CommunityPost;
+  } catch (error) {
+    console.error('Error updating community post:', error);
+    throw error;
+  }
+};
+
+// Delete community post
+export const deleteCommunityPost = async (postId: string): Promise<void> => {
+  try {
+    await databases.deleteDocument(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID,
+      postId
+    );
+  } catch (error) {
+    console.error('Error deleting community post:', error);
+    throw error;
+  }
+};
+
+// Upload community post image
+export const uploadCommunityPostImage = async (file: any): Promise<{ fileId: string; fileUrl: string }> => {
+  try {
+    if (!file || !file.uri) {
+      throw new Error('Invalid file object or missing URI');
+    }
+
+    const timestamp = Date.now();
+    const fileName = `community_post_${timestamp}.jpg`;
+    
+    const appwriteFile = {
+      name: fileName,
+      type: file.mimeType || file.type || 'image/jpeg',
+      size: file.fileSize || file.size,
+      uri: file.uri,
+    };
+
+    if (!appwriteFile.size || appwriteFile.size === 0) {
+      throw new Error('File size is 0 or undefined');
+    }
+
+    const response = await storage.createFile(
+      BUCKET_ID,
+      AppwriteID.unique(),
+      appwriteFile
+    );
+
+    if (!response || !response.$id) {
+      throw new Error('File upload failed');
+    }
+
+    const fileUrlString = `https://fra.cloud.appwrite.io/v1/storage/buckets/${BUCKET_ID}/files/${response.$id}/view?project=68d43c4e0000ac29ecc0`;
+    
+    return { fileId: response.$id, fileUrl: fileUrlString };
+  } catch (error: any) {
+    console.error('Error uploading community post image:', error);
+    throw error;
+  }
+};
+
+// Get single post by ID (for editing)
+export const getCommunityPostById = async (postId: string): Promise<CommunityPost> => {
+  try {
+    const response = await databases.getDocument(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID,
+      postId
+    );
+    
+    return {
+      $id: response.$id,
+      volunteerId: response.volunteerId,
+      volunteerName: response.volunteerName,
+      caption: response.caption,
+      eventTitle: response.eventTitle,
+      description: response.description,
+      imageUrl: response.imageUrl,
+      date: response.date,
+      time: response.time,
+      venue: response.venue,
+      categories: response.categories || [],
+      createdAt: response.createdAt,
+      updatedAt: response.updatedAt
+    } as CommunityPost;
+  } catch (error) {
+    console.error('Error fetching post by ID:', error);
+    throw error;
+  }
+};
+
+// Helper function to format time ago
+export const getTimeAgo = (dateString: string): string => {
+  const now = new Date();
+  const postDate = new Date(dateString);
+  const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds}s ago`;
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes}m ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days}d ago`;
+  }
+};
