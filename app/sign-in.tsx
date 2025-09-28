@@ -26,6 +26,14 @@ export default function SignIn() {
       <TouchableOpacity onPress={submit} className="bg-blue-500 p-4 rounded items-center">
         <Text className="text-white font-bold">Sign In</Text>
       </TouchableOpacity>
+
+       <TouchableOpacity 
+        onPress={() => router.push('/sign-up')} 
+        className="mt-4 items-center"
+      >
+        <Text className="text-blue-500">Don't have an account? Sign up</Text>
+      </TouchableOpacity>
+     
     </View>
   );
 }

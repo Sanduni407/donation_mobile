@@ -2,8 +2,8 @@ import React from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../lib/auth';
 
-export default function BeneficiaryProfile({ user }: any) {
-  const { signOut , deleteAccount } = useAuth();
+export default function BeneficiaryProfile() {
+  const {user, signOut , deleteAccount } = useAuth();
 
 
    const handleDelete = () => {

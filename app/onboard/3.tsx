@@ -1,14 +1,12 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../lib/auth';
 
 export default function Onboard3() {
   const router = useRouter();
-  const { setHasOnboarded } = useAuth();
-
+ 
   const finish = async () => {
-    await setHasOnboarded(true);
+    
     router.replace('/sign-up');
   };
 

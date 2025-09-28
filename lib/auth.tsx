@@ -74,6 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // fetch user
       const acc = await account.get();
       setUser(acc);
+
+      // ✅ ONLY mark onboarding as completed after successful signup
+      await setHasOnboarded(true);
+
       return acc;
     } finally {
       setLoading(false);
@@ -119,47 +123,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const deleteAccount = async () => {
+    if (!user) return;
 
+    setLoading(true);
+    try {
+      // Delete user from server
+      const response = await functions.createExecution(
+        '68d4d7b500196f351928',
+        JSON.stringify({ userId: user.$id })
+      );
 
- const deleteAccount = async () => {
-  if (!user) return;
-
-  setLoading(true);
-  try {
-    // Delete user from server
-    const response = await functions.createExecution(
-      '68d4d7b500196f351928',
-      JSON.stringify({ userId: user.$id })
-    );
-
-    if (response.responseStatusCode === 200) {
-      console.log('User deleted successfully');
-    } else {
-      throw new Error(`Function execution failed with status: ${response.responseStatusCode}`);
+      if (response.responseStatusCode === 200) {
+        console.log('User deleted successfully');
+      } else {
+        throw new Error(`Function execution failed with status: ${response.responseStatusCode}`);
+      }
+    } catch (error) {
+      console.error('Error deleting user via function:', error);
+      Alert.alert('Error', 'Failed to delete account. Please try again.');
+      return;
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error deleting user via function:', error);
-    Alert.alert('Error', 'Failed to delete account. Please try again.');
-    return;
-  } finally {
-    setLoading(false);
-  }
 
-  // Only do local cleanup - don't try to sign out from server
-  try {
-    setUser(null);
-    await AsyncStorage.removeItem('auth');
-    await AsyncStorage.removeItem('hasOnboarded');
-    router.replace('/sign-in' as any);
-  } catch (error) {
-    console.error('Error during cleanup:', error);
-  }
-};
-
- 
+    // Only do local cleanup - don't try to sign out from server
+    try {
+      setUser(null);
+      await AsyncStorage.removeItem('auth');
+      await AsyncStorage.removeItem('hasOnboarded'); // ✅ Reset onboarding when account deleted
+      router.replace('/sign-in' as any);
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, hasOnboarded, setHasOnboarded, signUp, signIn, signOut ,deleteAccount}}>
+    <AuthContext.Provider value={{ user, loading, hasOnboarded, setHasOnboarded, signUp, signIn, signOut, deleteAccount}}>
       {children}
     </AuthContext.Provider>
   );

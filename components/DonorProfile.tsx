@@ -3,8 +3,8 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../lib/auth';
 
-export default function DonorProfile({ user }: any) {
-  const { signOut } = useAuth();
+export default function DonorProfile() {
+  const { user,signOut } = useAuth();
   return (
     <View>
       <Text className="text-2xl font-bold">Donor Profile</Text>

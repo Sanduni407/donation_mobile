@@ -4,6 +4,8 @@ import { View } from 'react-native';
 
 
 
+
+import AdminProfile from '@/components/AdminProfile';
 import BeneficiaryProfile from '@/components/BeneficiaryProfile';
 import DonorProfile from '@/components/DonorProfile';
 import VolunteerProfile from '@/components/VolunteerProfile';
@@ -15,9 +17,10 @@ export default function Profile() {
 
   return (
     <View className="flex-1 bg-white p-4">
-      {role === 'donor' && <DonorProfile user={user} />}
-      {role === 'beneficiary' && <BeneficiaryProfile user={user} />}
-      {role === 'volunteer' && <VolunteerProfile user={user} />}
+      {role === 'donor' && <DonorProfile />}
+      {role === 'beneficiary' && <BeneficiaryProfile/>}
+      {role === 'volunteer' && <VolunteerProfile  />}
+      {role === 'admin' && <AdminProfile  />}
     </View>
   );
 }

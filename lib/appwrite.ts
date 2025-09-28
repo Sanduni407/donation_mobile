@@ -1,5 +1,5 @@
 // lib/appwrite.ts
-import { Account, Client, Functions, ID } from 'react-native-appwrite';
+import { Account, Client, Databases, Functions, ID, Storage } from 'react-native-appwrite';
 import 'react-native-url-polyfill/auto';
 
 // Replace these with values from your Appwrite console
@@ -15,6 +15,10 @@ const client = new Client()
 export const account = new Account(client);
 export const AppwriteID = ID; // if you need ID.unique()
 export const functions = new Functions(client);
+
+export const databases = new Databases(client);
+export const storage = new Storage(client);
+
 export default client;
 
 
