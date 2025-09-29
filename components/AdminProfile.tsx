@@ -36,21 +36,16 @@ export default function AdminProfile() {
         
         <TouchableOpacity 
           className="bg-blue-500 p-4 rounded-lg mb-3"
+          onPress={() => router.push('/admin/help-requests')}
         >
           <Text className="text-white text-center font-semibold">View All Help Requests</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity className="bg-green-500 p-4 rounded-lg mb-3">
-          <Text className="text-white text-center font-semibold">View Donations</Text>
-        </TouchableOpacity>
+       
         
-        <TouchableOpacity className="bg-purple-500 p-4 rounded-lg mb-3">
-          <Text className="text-white text-center font-semibold">Manage Posts</Text>
-        </TouchableOpacity>
+       
         
-        <TouchableOpacity className="bg-orange-500 p-4 rounded-lg mb-3">
-          <Text className="text-white text-center font-semibold">System Settings</Text>
-        </TouchableOpacity>
+       
       </View>
 
       {/* Account Actions */}
