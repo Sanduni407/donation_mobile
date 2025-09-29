@@ -1,37 +1,51 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../lib/auth';
-import { CommunityPost, deleteCommunityPost, getPostsByVolunteer, getTimeAgo, isVolunteer } from '../lib/community';
+import { CommunityPost, deleteCommunityPost, getPostsByVolunteer, getTimeAgo, getUserStats, isVolunteer } from '../lib/community';
 
 export default function VolunteerProfile() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalPosts: 0, totalReactions: 0, totalComments: 0 });
 
   const userIsVolunteer = user?.prefs ? isVolunteer(user.prefs) : false;
   const userRole = user?.prefs?.role || 'user';
 
+  const getBadgeLevel = (totalPosts: number): string => {
+    if (totalPosts >= 5) return 'Gold';
+    if (totalPosts >= 4) return 'Silver';
+    return 'Bronze';
+  };
+
+  const badgeLevel = getBadgeLevel(stats.totalPosts);
+
   useEffect(() => {
     if (user && userIsVolunteer) {
-      fetchUserPosts();
+      fetchUserData();
     } else if (user && !userIsVolunteer) {
       setLoading(false);
     }
   }, [user, userIsVolunteer]);
 
-  const fetchUserPosts = async () => {
+  const fetchUserData = async () => {
     if (!userIsVolunteer) return;
     
     try {
       setLoading(true);
-      const posts = await getPostsByVolunteer(user.$id);
+      const [posts, userStats] = await Promise.all([
+        getPostsByVolunteer(user.$id),
+        getUserStats(user.$id)
+      ]);
       setUserPosts(posts);
+      setStats(userStats);
     } catch (error: any) {
-      console.error('Error fetching user posts:', error);
-      Alert.alert('Error', 'Failed to load your posts');
+      console.error('Error fetching user data:', error);
+      Alert.alert('Error', 'Failed to load your data');
     } finally {
       setLoading(false);
     }
@@ -40,7 +54,7 @@ export default function VolunteerProfile() {
   useFocusEffect(
     useCallback(() => {
       if (user && userIsVolunteer) {
-        fetchUserPosts();
+        fetchUserData();
       }
     }, [user, userIsVolunteer])
   );
@@ -83,7 +97,7 @@ export default function VolunteerProfile() {
             try {
               await deleteCommunityPost(postId, userRole, user.$id);
               Alert.alert('Success', 'Post deleted successfully!');
-              fetchUserPosts();
+              fetchUserData();
             } catch (error: any) {
               console.error('Error deleting post:', error);
               Alert.alert('Error', error.message || 'Failed to delete post');
@@ -131,15 +145,17 @@ export default function VolunteerProfile() {
         <View className="flex-row">
           <TouchableOpacity 
             onPress={() => handleEditPost(item.$id)}
-            className="bg-blue-600 px-2 py-1 rounded mr-2"
+            className="px-3 py-2 rounded mr-2"
+            style={{ backgroundColor: '#0B1E3D' }}
           >
-            <Text className="text-white text-xs">Edit</Text>
+            <Text className="text-white text-lg">✏️</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => handleDeletePost(item.$id, item.eventTitle)}
-            className="bg-red-500 px-2 py-1 rounded"
+            className="px-3 py-2 rounded"
+            style={{ backgroundColor: '#8B0000' }}
           >
-            <Text className="text-white text-xs">Delete</Text>
+            <Text className="text-white text-lg">🗑️</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -149,45 +165,188 @@ export default function VolunteerProfile() {
   return (
     <ScrollView className="flex-1 bg-gray-50">
       <View className="p-4">
-        {/* Header with Profile */}
-        <View className="bg-white rounded-lg p-6 mb-4 shadow-sm items-center">
-          <Text className="text-2xl font-bold text-blue-900 mb-4">My Profile</Text>
-          
-          {/* Profile Icon */}
-          <View className="w-24 h-24 rounded-full bg-blue-600 items-center justify-center mb-3">
-            <Text className="text-white text-4xl font-bold">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+        {/* Enhanced Profile Section with Gradient */}
+        <LinearGradient
+          colors={['#0B1E3D', '#1E3A5F', '#0B1E3D']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 16,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4.65,
+            elevation: 8,
+          }}
+        >
+          {/* Header */}
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <Text style={{ fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 8 }}>
+              My Profile
             </Text>
+            <View style={{ width: 64, height: 4, backgroundColor: '#040716ff', borderRadius: 2 }} />
           </View>
           
-          {/* Welcome Message */}
-          <Text className="text-lg text-gray-600 mb-1">
-            Welcome {user?.name || 'User'}
-          </Text>
-          
-          {/* Name */}
-          <Text className="text-base text-gray-800 font-medium mb-1">
-            {user?.name}
-          </Text>
-          
-          {/* Email */}
-          <Text className="text-sm text-gray-600">
-            {user?.email}
-          </Text>
-        </View>
+          {/* Profile Avatar */}
+          <View style={{ alignItems: 'center', marginBottom: 16 }}>
+            <View 
+              style={{
+                width: 112,
+                height: 112,
+                borderRadius: 56,
+                backgroundColor: '#FFFFFF',
+                borderWidth: 4,
+                borderColor: '#d63b18ff',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4.65,
+                elevation: 8,
+              }}
+            >
+              <Text style={{ fontSize: 48, fontWeight: 'bold', color: '#0B1E3D' }}>
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </Text>
+            </View>
+            
+            {/* Welcome Message */}
+            <View 
+              style={{
+                backgroundColor: 'rgba(249, 246, 234, 0.15)',
+                borderRadius: 12,
+                paddingHorizontal: 24,
+                paddingVertical: 16,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: 'rgba(98, 221, 174, 0.3)',
+                minWidth: '80%',
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 4, color: '#FCD34D' }}>
+                Welcome Back!
+              </Text>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' }}>
+                {user?.name || 'User'}
+              </Text>
+            </View>
+            
+            {/* User Details Card */}
+            <View style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              padding: 16,
+              width: '100%',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}>
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 11, marginBottom: 4, fontWeight: '600', color: '#6B7280', letterSpacing: 0.5 }}>
+                  FULL NAME
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#111827' }}>
+                  {user?.name || 'Not provided'}
+                </Text>
+              </View>
+              
+              <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+                <Text style={{ fontSize: 11, marginBottom: 4, fontWeight: '600', color: '#6B7280', letterSpacing: 0.5 }}>
+                  EMAIL ADDRESS
+                </Text>
+                <Text style={{ fontSize: 14, color: '#060a12ff' }}>
+                  {user?.email || 'Not provided'}
+                </Text>
+              </View>
+              
+              {/* Role Badge */}
+              <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+                <View 
+                  style={{
+                    backgroundColor: userIsVolunteer ? '#10B981' : '#3B82F6',
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    alignSelf: 'flex-start',
+                  }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: 'bold', letterSpacing: 0.5 }}>
+                    {userIsVolunteer ? '🌟 VOLUNTEER' : '👤 USER'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Create Post Button - Between My Profile and My Stats */}
+        {userIsVolunteer && (
+          <View className="flex-row justify-end items-center mb-4">
+            <View className="items-center">
+              <Text className="text-gray-700 font-medium mb-2">Create New Post</Text>
+              <TouchableOpacity 
+                onPress={handleCreatePost}
+                className="rounded-full items-center justify-center shadow-lg"
+                style={{
+                  width: 56,
+                  height: 56,
+                  backgroundColor: '#0B1E3D',
+                  borderWidth: 3,
+                  borderColor: '#FF0000'
+                }}
+              >
+                <Text className="text-white text-3xl font-light">+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Volunteer-specific features */}
         {userIsVolunteer && (
           <>
-            {/* Create Post Button */}
-            <TouchableOpacity 
-              onPress={handleCreatePost}
-              className="bg-blue-900 p-4 rounded-lg mb-4 shadow-sm"
-            >
-              <Text className="text-white text-center font-semibold text-lg">
-                Create New Post
-              </Text>
-            </TouchableOpacity>
+            {/* My Stats Section */}
+            <View className="bg-blue-900 rounded-lg p-4 mb-4 shadow-sm">
+              <Text className="text-xl font-bold text-white mb-3">My Stats</Text>
+              
+              <View className="flex-row justify-between">
+                <View className="bg-yellow-50 border-2 border-red-500 rounded-lg p-4 items-center" style={{ flex: 1, marginRight: 8 }}>
+                  <Text className="text-3xl font-bold text-black mb-1">{stats.totalPosts}</Text>
+                  <Text className="text-sm text-black">Posts</Text>
+                </View>
+                
+                <View className="bg-yellow-50 border-2 border-red-500 rounded-lg p-4 items-center" style={{ flex: 1, marginHorizontal: 4 }}>
+                  <Text className="text-3xl font-bold text-black mb-1">{stats.totalReactions}</Text>
+                  <Text className="text-sm text-black">Reactions</Text>
+                </View>
+                
+                <View className="bg-yellow-50 border-2 border-red-500 rounded-lg p-4 items-center" style={{ flex: 1, marginLeft: 8 }}>
+                  <Text className="text-3xl font-bold text-black mb-1">{stats.totalComments}</Text>
+                  <Text className="text-sm text-black">Comment</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Badges and Achievements Section */}
+            <View className="mb-4">
+              <Text className="text-xl font-bold text-blue-900 mb-3">Badges and Achievements</Text>
+              
+              <View className="bg-blue-900 border-4 border-yellow-500 rounded-lg p-6 items-center">
+                <Text className="text-6xl mb-3">🏆</Text>
+                <Text className="text-3xl font-bold text-yellow-500 mb-2">{badgeLevel}</Text>
+                
+                {badgeLevel === 'Gold' && (
+                  <Text className="text-center text-yellow-300 text-base mt-2">
+                    Congratulations!! You're a gold member now
+                  </Text>
+                )}
+              </View>
+            </View>
 
             {/* User Posts Section - Horizontal Scroll */}
             <View className="mb-4">
@@ -234,13 +393,16 @@ export default function VolunteerProfile() {
             </Text>
           </View>
         )}
+      </View>
 
-        {/* Logout Button */}
+      {/* Logout Button - At the end of scrollable content */}
+      <View className="p-4 pt-8">
         <TouchableOpacity 
           onPress={() => signOut()} 
-          className="bg-red-500 p-3 rounded-lg mt-4"
+          className="px-6 py-3 rounded-lg shadow-lg"
+          style={{ backgroundColor: '#8B0000', alignSelf: 'flex-start' }}
         >
-          <Text className="text-white text-center font-semibold">Logout</Text>
+          <Text className="text-white font-semibold">Logout</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
