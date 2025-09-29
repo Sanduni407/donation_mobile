@@ -3,22 +3,23 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { useAuth } from '../../lib/auth';
 import {
-    CommunityPostData,
-    createCommunityPost,
-    getCommunityPostById,
-    updateCommunityPost,
-    uploadCommunityPostImage
+  CommunityPostData,
+  createCommunityPost,
+  getCommunityPostById,
+  isVolunteer,
+  updateCommunityPost,
+  uploadCommunityPostImage
 } from '../../lib/community';
 
 // Type for selected image
@@ -60,17 +61,40 @@ export default function CreatePostScreen() {
   const [loading, setLoading] = useState(false);
   const [loadingExistingPost, setLoadingExistingPost] = useState(false);
 
+  // Check if current user is a volunteer
+  const userIsVolunteer = user?.prefs ? isVolunteer(user.prefs) : false;
+
+  // Redirect if not volunteer
+  useEffect(() => {
+    if (user && !userIsVolunteer) {
+      Alert.alert(
+        'Access Restricted', 
+        'Only volunteers can create or edit community posts.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+      return;
+    }
+  }, [user, userIsVolunteer]);
+
   // Load existing post data if editing
   useEffect(() => {
-    if (isEditing && params.postId) {
+    if (isEditing && params.postId && userIsVolunteer) {
       loadExistingPost(params.postId as string);
     }
-  }, [isEditing, params.postId]);
+  }, [isEditing, params.postId, userIsVolunteer]);
 
   const loadExistingPost = async (postId: string) => {
     try {
       setLoadingExistingPost(true);
       const post = await getCommunityPostById(postId);
+
+      // Only allow editing if the current user owns the post
+      if (post.volunteerId !== user.$id) {
+        Alert.alert('Error', 'You can only edit your own posts', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+        return;
+      }
 
       // Populate form with existing data
       setCaption(post.caption || '');
@@ -91,7 +115,9 @@ export default function CreatePostScreen() {
       });
     } catch (error) {
       console.error('Error loading existing post:', error);
-      Alert.alert('Error', 'Failed to load post data');
+      Alert.alert('Error', 'Failed to load post data', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } finally {
       setLoadingExistingPost(false);
     }
@@ -203,22 +229,48 @@ export default function CreatePostScreen() {
         categories: getSelectedCategories(),
       };
 
+      // Get user role
+      const userRole = user.prefs?.role || '';
+
       if (isEditing) {
-        await updateCommunityPost(params.postId as string, postData);
+        // Pass all 4 required parameters
+        await updateCommunityPost(params.postId as string, postData, userRole, user.$id);
         Alert.alert('Success', 'Post updated successfully!');
       } else {
-        await createCommunityPost(postData);
+        // Pass both required parameters
+        await createCommunityPost(postData, userRole);
         Alert.alert('Success', 'Post created successfully!');
       }
 
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting post:', error);
-      Alert.alert('Error', 'Failed to save post. Please try again.');
+      Alert.alert('Error', error.message || 'Failed to save post. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Don't render if not volunteer
+  if (user && !userIsVolunteer) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50 p-4">
+        <Text className="text-6xl mb-4">🚫</Text>
+        <Text className="text-xl font-bold text-gray-800 text-center mb-2">
+          Access Restricted
+        </Text>
+        <Text className="text-gray-600 text-center mb-6">
+          Only volunteers can create or edit community posts.
+        </Text>
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          className="bg-blue-600 px-6 py-3 rounded-lg"
+        >
+          <Text className="text-white font-semibold">Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (loadingExistingPost) {
     return (
@@ -236,6 +288,11 @@ export default function CreatePostScreen() {
           <Text className="text-2xl font-bold text-center text-white">
             {isEditing ? 'Edit Post' : 'Create New Post'}
           </Text>
+          <View className="flex-row items-center justify-center mt-2">
+            <View className="bg-green-100 px-3 py-1 rounded-full">
+              <Text className="text-green-800 text-xs font-medium">Volunteer Only</Text>
+            </View>
+          </View>
         </View>
 
         {/* Form */}
