@@ -11,6 +11,7 @@ import {
   removeReaction
 } from '@/lib/community';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
@@ -226,12 +227,50 @@ export default function CommunityFeed() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className="bg-blue-900 pt-12 pb-4 px-4">
-        <Text className="text-2xl font-bold text-white text-center">Community Feed</Text>
-        <Text className="text-center text-blue-200 text-sm mt-1">
-          Welcome to our Community!
-        </Text>
-      </View>
+      {/* Enhanced Header with Gradient */}
+      <LinearGradient
+        colors={['#0B1E3D', '#1E3A5F']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{
+          paddingTop: 48,
+          paddingBottom: 20,
+          paddingHorizontal: 16,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}
+      >
+        {/* Title with underline */}
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#FFFFFF', letterSpacing: 1 }}>
+            Community
+          </Text>
+          <View style={{ width: 80, height: 3, backgroundColor: '#FCD34D', borderRadius: 2, marginTop: 8 }} />
+        </View>
+        
+        {/* Welcome Message Card */}
+        <View 
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            borderRadius: 12,
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: '#FCD34D', fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>
+            Welcome to Our Community!
+          </Text>
+          <Text style={{ color: '#E0E7FF', fontSize: 13, textAlign: 'center' }}>
+            Connect, share, and grow together
+          </Text>
+        </View>
+      </LinearGradient>
 
       <FlatList 
         data={posts}

@@ -487,6 +487,60 @@ export const getCommentCount = async (postId: string): Promise<number> => {
   }
 };
 
+// Get user statistics
+export const getUserStats = async (volunteerId: string): Promise<{
+  totalPosts: number;
+  totalReactions: number;
+  totalComments: number;
+}> => {
+  try {
+    // Get all posts by the volunteer
+    const postsResponse = await databases.listDocuments(
+      DATABASE_ID,
+      COMMUNITY_POSTS_TABLE_ID
+    );
+    
+    const userPosts = postsResponse.documents.filter(
+      post => post.volunteerId === volunteerId
+    );
+    
+    const totalPosts = userPosts.length;
+    
+    // Get all reactions for user's posts
+    const reactionsResponse = await databases.listDocuments(
+      DATABASE_ID,
+      REACTIONS_TABLE_ID
+    );
+    
+    const totalReactions = reactionsResponse.documents.filter(reaction =>
+      userPosts.some(post => post.$id === reaction.postId)
+    ).length;
+    
+    // Get all comments for user's posts
+    const commentsResponse = await databases.listDocuments(
+      DATABASE_ID,
+      COMMENTS_TABLE_ID
+    );
+    
+    const totalComments = commentsResponse.documents.filter(comment =>
+      userPosts.some(post => post.$id === comment.postId)
+    ).length;
+    
+    return {
+      totalPosts,
+      totalReactions,
+      totalComments
+    };
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    return {
+      totalPosts: 0,
+      totalReactions: 0,
+      totalComments: 0
+    };
+  }
+};
+
 // Helper function to format time ago
 export const getTimeAgo = (dateString: string): string => {
   const now = new Date();
