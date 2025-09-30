@@ -15,6 +15,7 @@ export type BeneficiaryPostData = {
   itemsNeeded: string[];
   goalAmount: number; // float - supports decimals like 1250.50
   urgencyLevel: string;
+  typeOfHelp: string;
   collectedAmount?: number; // float - supports decimals like 327.75
   status?: string;
   imageUrl?: string;
