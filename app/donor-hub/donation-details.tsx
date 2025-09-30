@@ -3,12 +3,12 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -255,16 +255,22 @@ const DonationDetails = () => {
           </View>
 
           {/* Donate Button */}
-          <TouchableOpacity
-            className="bg-[#FFB900] py-4 px-6 rounded-xl flex-row items-center justify-center shadow-lg mb-4"
-            activeOpacity={0.8}
-          >
-            <Ionicons name="heart" size={24} color="#007DBD" />
-            <Text className="text-gray-900 text-lg font-bold ml-2 tracking-wide">
-              Donate Now
-            </Text>
-          </TouchableOpacity>
-
+  
+       <TouchableOpacity
+          className="bg-[#FFB900] py-4 px-6 rounded-xl flex-row items-center justify-center shadow-lg mb-4"
+          onPress={() =>
+          router.push({
+          pathname: '/donor-hub/enter-donation-amount',
+          params: { postId: post.$id },
+          })
+          }
+        activeOpacity={0.8}
+        >
+       <Ionicons name="heart" size={24} color="#007DBD" />
+      <Text className="text-gray-900 text-lg font-bold ml-2 tracking-wide">
+         Donate Now
+      </Text>
+     </TouchableOpacity>
           {/* Help Text */}
           <View className="flex-row items-center justify-center">
             <Ionicons name="shield-checkmark" size={16} color="#6B7280" />
