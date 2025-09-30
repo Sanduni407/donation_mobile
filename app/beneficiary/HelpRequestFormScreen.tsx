@@ -1,6 +1,7 @@
+import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../lib/auth';
 import { createHelpRequest, HelpRequestData, uploadEvidenceFile } from '../../lib/beneficiary';
 
@@ -22,25 +23,20 @@ const HelpRequestFormScreen = () => {
   const pickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*', // Allow all file types
-        copyToCacheDirectory: true, // Important for file access
+        type: '*/*',
+        copyToCacheDirectory: true,
       });
 
-     
-
-      // Check if user cancelled
       if (result.canceled) {
         console.log('User cancelled document picker');
         return;
       }
 
-      // Check if we have assets (newer expo-document-picker format)
       if (result.assets && result.assets.length > 0) {
         const selectedFile = result.assets[0];
         console.log('Selected file:', selectedFile);
         setFile(selectedFile);
       } else if ('uri' in result) {
-        // Fallback for older format
         console.log('Selected file (old format):', result);
         setFile(result);
       }
@@ -60,16 +56,14 @@ const HelpRequestFormScreen = () => {
 
     try {
       let evidenceFileId: string | undefined;
-      
+
       if (file) {
-        console.log('Uploading file:', file);
         try {
           evidenceFileId = await uploadEvidenceFile(file);
           console.log('File uploaded successfully with ID:', evidenceFileId);
         } catch (fileError) {
           console.error('File upload error:', fileError);
           Alert.alert('Warning', 'File upload failed, but continuing with request submission');
-          // Continue without file instead of failing completely
         }
       }
 
@@ -91,19 +85,19 @@ const HelpRequestFormScreen = () => {
 
       console.log('Creating help request with data:', data);
       await createHelpRequest(data);
-      
+
       Alert.alert('Success', 'Help request submitted successfully!');
-      
+
       // Reset form
-      setAge(''); 
-      setLocation(''); 
-      setTypeOfHelp(''); 
-      setDescription(''); 
+      setAge('');
+      setLocation('');
+      setTypeOfHelp('');
+      setDescription('');
       setRequestedAmount('');
-      setPaymentDetails(''); 
-      setItemsNeeded(''); 
+      setPaymentDetails('');
+      setItemsNeeded('');
       setFile(null);
-      
+
     } catch (err) {
       console.error('Submission error:', err);
       Alert.alert('Error', 'Failed to submit request. Please try again.');
@@ -119,7 +113,7 @@ const HelpRequestFormScreen = () => {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
-        
+
         <Text className="text-2xl font-bold text-gray-800 mb-4">Submit Help Request</Text>
 
         <Text className="text-lg font-semibold mt-4">Personal Info</Text>
@@ -144,12 +138,23 @@ const HelpRequestFormScreen = () => {
         />
 
         <Text className="text-lg font-semibold mt-6">Help Details</Text>
-        <TextInput
-          className="border border-gray-300 rounded p-3 mt-2"
-          placeholder="Type of Help"
-          value={typeOfHelp}
-          onChangeText={setTypeOfHelp}
-        />
+        {/* Dropdown for Type of Help */}
+        <Text className="mt-2 mb-1 font-medium text-gray-700">Type of Help</Text>
+        <View className="border border-gray-300 rounded">
+          <Picker
+            selectedValue={typeOfHelp}
+            onValueChange={(itemValue) => setTypeOfHelp(itemValue)}
+          >
+            <Picker.Item label="Select type of help" value="" />
+            <Picker.Item label="Financial Aid" value="Financial Aid" />
+            <Picker.Item label="Medical Support" value="Medical Support" />
+            <Picker.Item label="Food Assistance" value="Food Assistance" />
+            <Picker.Item label="Educational Support" value="Educational Support" />
+            <Picker.Item label="Housing Support" value="Housing Support" />
+            <Picker.Item label="Other" value="Other" />
+          </Picker>
+        </View>
+
         <TextInput
           className="border border-gray-300 rounded p-3 mt-2 h-20"
           placeholder="Description"
@@ -171,13 +176,19 @@ const HelpRequestFormScreen = () => {
           onChangeText={setPaymentDetails}
         />
 
+        {/* Dropdown for Urgency */}
         <Text className="text-lg font-semibold mt-6">Urgency</Text>
-        <TextInput
-          className="border border-gray-300 rounded p-3 mt-2"
-          placeholder="Urgency (Low, Medium, High, Critical)"
-          value={urgency}
-          onChangeText={setUrgency}
-        />
+        <View className="border border-gray-300 rounded mt-2">
+          <Picker
+            selectedValue={urgency}
+            onValueChange={(itemValue) => setUrgency(itemValue)}
+          >
+            <Picker.Item label="Low" value="Low" />
+            <Picker.Item label="Medium" value="Medium" />
+            <Picker.Item label="High" value="High" />
+            <Picker.Item label="Urgent" value="Urgent" />
+          </Picker>
+        </View>
 
         <Text className="text-lg font-semibold mt-6">Items Needed (comma separated)</Text>
         <TextInput

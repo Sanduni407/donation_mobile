@@ -88,6 +88,7 @@ export default function RequestDetail() {
         itemsNeeded: request.itemsNeeded,
         goalAmount: request.requestedAmount,
         urgencyLevel: request.urgency,
+        typeOfHelp: request.typeOfHelp,
       };
 
       const createdPost = await createBeneficiaryPost(postData);

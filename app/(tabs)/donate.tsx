@@ -25,6 +25,7 @@ type BeneficiaryPost = {
   itemsNeeded: string[];
   goalAmount: number;
   urgencyLevel: string;
+  typeOfHelp: string;
   collectedAmount?: number;
   status?: string;
   imageUrl?: string;
