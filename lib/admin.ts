@@ -195,3 +195,35 @@ export const updateBeneficiaryPostImage = async (postId: string, imageUrl: strin
     throw error;
   }
 };
+
+
+
+// Get all active beneficiary posts for donation feed
+export const getAllBeneficiaryPosts = async (): Promise<BeneficiaryPostData[]> => {
+  try {
+    const response = await databases.listDocuments(
+      DATABASE_ID,
+      POSTS_TABLE_ID,
+      [] // Get all posts, you can add filters if needed
+    );
+    return response.documents as unknown as BeneficiaryPostData[];
+  } catch (error) {
+    console.error('Error fetching beneficiary posts:', error);
+    throw error;
+  }
+};
+
+// Get single beneficiary post by ID
+export const getBeneficiaryPostById = async (postId: string): Promise<BeneficiaryPostData> => {
+  try {
+    const response = await databases.getDocument(
+      DATABASE_ID,
+      POSTS_TABLE_ID,
+      postId
+    );
+    return response as unknown as BeneficiaryPostData;
+  } catch (error) {
+    console.error('Error fetching beneficiary post:', error);
+    throw error;
+  }
+};
