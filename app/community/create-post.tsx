@@ -22,7 +22,6 @@ import {
   uploadCommunityPostImage
 } from '../../lib/community';
 
-// Type for selected image
 interface SelectedImageType {
   uri: string;
   width: number;
@@ -39,7 +38,6 @@ export default function CreatePostScreen() {
   const params = useLocalSearchParams();
   const isEditing = !!params.postId;
 
-  // Form state
   const [caption, setCaption] = useState('');
   const [eventTitle, setEventTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -55,16 +53,13 @@ export default function CreatePostScreen() {
     household: false,
   });
   
-  // UI state
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingExistingPost, setLoadingExistingPost] = useState(false);
 
-  // Check if current user is a volunteer
   const userIsVolunteer = user?.prefs ? isVolunteer(user.prefs) : false;
 
-  // Redirect if not volunteer
   useEffect(() => {
     if (user && !userIsVolunteer) {
       Alert.alert(
@@ -76,19 +71,87 @@ export default function CreatePostScreen() {
     }
   }, [user, userIsVolunteer]);
 
-  // Load existing post data if editing
   useEffect(() => {
     if (isEditing && params.postId && userIsVolunteer) {
       loadExistingPost(params.postId as string);
     }
   }, [isEditing, params.postId, userIsVolunteer]);
 
+  const parseFormattedDate = (dateStr: string): Date => {
+    console.log('Parsing date string:', dateStr);
+    
+    // Handle various date formats
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    // Try to match format like "September 30, 2025" or "September 30 2025"
+    const datePattern = /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/;
+    const match = dateStr.match(datePattern);
+    
+    if (match) {
+      const monthName = match[1];
+      const day = parseInt(match[2]);
+      const year = parseInt(match[3]);
+      
+      const monthIndex = months.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
+      
+      if (monthIndex !== -1) {
+        const parsed = new Date(year, monthIndex, day);
+        console.log('Successfully parsed date:', parsed);
+        return parsed;
+      }
+    }
+    
+    // Fallback: try standard Date parsing
+    const fallback = new Date(dateStr);
+    if (!isNaN(fallback.getTime())) {
+      console.log('Fallback date parsing succeeded:', fallback);
+      return fallback;
+    }
+    
+    console.log('Date parsing failed, returning current date');
+    return new Date();
+  };
+
+  const parseFormattedTime = (timeStr: string): Date => {
+    console.log('Parsing time string:', timeStr);
+    
+    const timeDate = new Date();
+    
+    // Match format like "02:30 PM" or "2:30 PM"
+    const timePattern = /(\d{1,2}):(\d{2})\s*(AM|PM)/i;
+    const match = timeStr.match(timePattern);
+    
+    if (match) {
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const period = match[3].toUpperCase();
+      
+      // Convert to 24-hour format
+      if (period === 'PM' && hours !== 12) {
+        hours += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+      }
+      
+      timeDate.setHours(hours, minutes, 0, 0);
+      console.log('Successfully parsed time:', timeDate);
+      return timeDate;
+    }
+    
+    console.log('Time parsing failed, returning current time');
+    return timeDate;
+  };
+
   const loadExistingPost = async (postId: string) => {
     try {
       setLoadingExistingPost(true);
       const post = await getCommunityPostById(postId);
 
-      // Only allow editing if the current user owns the post
+      console.log('Loaded post:', post);
+
       if (post.volunteerId !== user.$id) {
         Alert.alert('Error', 'You can only edit your own posts', [
           { text: 'OK', onPress: () => router.back() }
@@ -96,16 +159,23 @@ export default function CreatePostScreen() {
         return;
       }
 
-      // Populate form with existing data
       setCaption(post.caption || '');
       setEventTitle(post.eventTitle || '');
       setDescription(post.description || '');
       setExistingImageUrl(post.imageUrl || '');
-      setDate(new Date(post.date || new Date()));
-      setTime(new Date(`2000-01-01 ${post.time || '00:00'}`));
       setVenue(post.venue || '');
       
-      // Set categories
+      // Parse date and time
+      if (post.date) {
+        const parsedDate = parseFormattedDate(post.date);
+        setDate(parsedDate);
+      }
+      
+      if (post.time) {
+        const parsedTime = parseFormattedTime(post.time);
+        setTime(parsedTime);
+      }
+      
       const postCategories = post.categories || [];
       setCategories({
         food: postCategories.includes('food'),
@@ -209,13 +279,11 @@ export default function CreatePostScreen() {
     try {
       let imageUrl = existingImageUrl;
 
-      // Upload new image if selected
       if (selectedImage) {
         const uploadResult = await uploadCommunityPostImage(selectedImage);
         imageUrl = uploadResult.fileUrl;
       }
 
-      // Prepare post data
       const postData: CommunityPostData = {
         volunteerId: user.$id,
         volunteerName: user.name,
@@ -229,15 +297,12 @@ export default function CreatePostScreen() {
         categories: getSelectedCategories(),
       };
 
-      // Get user role
       const userRole = user.prefs?.role || '';
 
       if (isEditing) {
-        // Pass all 4 required parameters
         await updateCommunityPost(params.postId as string, postData, userRole, user.$id);
         Alert.alert('Success', 'Post updated successfully!');
       } else {
-        // Pass both required parameters
         await createCommunityPost(postData, userRole);
         Alert.alert('Success', 'Post created successfully!');
       }
@@ -251,7 +316,6 @@ export default function CreatePostScreen() {
     }
   };
 
-  // Don't render if not volunteer
   if (user && !userIsVolunteer) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50 p-4">
@@ -283,8 +347,8 @@ export default function CreatePostScreen() {
   return (
     <ScrollView className="flex-1 bg-gray-50">
       <View className="p-4">
-        {/* Header */}
-        <View className="bg-blue-900 rounded-lg p-4 mb-4 shadow-sm">
+        {/* Modified Header - Changed to dark blue (#007DBD) */}
+        <View className="rounded-lg p-4 mb-4 shadow-sm" style={{ backgroundColor: '#007DBD' }}>
           <Text className="text-2xl font-bold text-center text-white">
             {isEditing ? 'Edit Post' : 'Create New Post'}
           </Text>
@@ -295,9 +359,7 @@ export default function CreatePostScreen() {
           </View>
         </View>
 
-        {/* Form */}
         <View className="bg-white rounded-lg p-4 shadow-sm">
-          {/* Caption */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Caption</Text>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
@@ -308,7 +370,6 @@ export default function CreatePostScreen() {
             numberOfLines={3}
           />
 
-          {/* Event Title */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Event Title</Text>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
@@ -317,7 +378,6 @@ export default function CreatePostScreen() {
             onChangeText={setEventTitle}
           />
 
-          {/* Description */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Description</Text>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
@@ -328,7 +388,6 @@ export default function CreatePostScreen() {
             numberOfLines={4}
           />
 
-          {/* Image Upload */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Event Image</Text>
           <TouchableOpacity 
             onPress={pickImage}
@@ -357,7 +416,6 @@ export default function CreatePostScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Date Selection */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Event Date</Text>
           <TouchableOpacity 
             onPress={() => setShowDatePicker(true)}
@@ -380,7 +438,6 @@ export default function CreatePostScreen() {
             />
           )}
 
-          {/* Time Selection */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Event Time</Text>
           <TouchableOpacity 
             onPress={() => setShowTimePicker(true)}
@@ -403,7 +460,6 @@ export default function CreatePostScreen() {
             />
           )}
 
-          {/* Venue */}
           <Text className="text-lg font-semibold text-blue-900 mb-2">Venue</Text>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
@@ -412,7 +468,6 @@ export default function CreatePostScreen() {
             onChangeText={setVenue}
           />
 
-          {/* Categories */}
           <Text className="text-lg font-semibold text-blue-900 mb-3">Categories</Text>
           <View className="flex-row flex-wrap mb-6">
             {Object.entries(categories).map(([category, selected]) => (
@@ -434,13 +489,14 @@ export default function CreatePostScreen() {
             ))}
           </View>
 
-          {/* Submit Button */}
+          {/* Modified Submit Button - Changed to dark blue (#007DBD) */}
           <TouchableOpacity 
             onPress={handleSubmit}
             disabled={loading}
             className={`rounded-lg p-4 ${
-              loading ? 'bg-gray-400' : 'bg-blue-900'
+              loading ? 'bg-gray-400' : ''
             }`}
+            style={!loading ? { backgroundColor: '#007DBD' } : {}}
           >
             <Text className="text-white text-center font-semibold text-lg">
               {loading 
@@ -450,7 +506,6 @@ export default function CreatePostScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Cancel Button */}
           <TouchableOpacity 
             onPress={() => router.back()}
             className="border border-red-500 rounded-lg p-4 mt-3"
