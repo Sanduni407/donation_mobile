@@ -1,8 +1,9 @@
 // lib/donations.ts
+import { Query } from 'react-native-appwrite';
 import { AppwriteID, databases } from './appwrite';
 
 const DATABASE_ID = '68d797e8002551ac5a86';
-const DONATIONS_TABLE_ID = 'donations'; // Create this table in Appwrite
+const DONATIONS_TABLE_ID = 'donations';
 const POSTS_TABLE_ID = 'beneficiaryposts';
 
 export type DonationData = {
@@ -15,6 +16,7 @@ export type DonationData = {
   paymentStatus: 'succeeded' | 'failed' | 'pending';
   donorName: string;
   beneficiaryName: string;
+  createdAt?: string;
 };
 
 // Convert LKR to USD (approximate rate, you can make this dynamic)
@@ -84,10 +86,7 @@ export const getDonationsByDonor = async (donorId: string) => {
     const response = await databases.listDocuments(
       DATABASE_ID,
       DONATIONS_TABLE_ID,
-      [
-        // Filter by donorId - Appwrite Query syntax
-        `donorId="${donorId}"`,
-      ]
+      [Query.equal('donorId', donorId), Query.orderDesc('createdAt')]
     );
     return response.documents;
   } catch (error) {
@@ -107,6 +106,32 @@ export const getDonationById = async (donationId: string) => {
     return response;
   } catch (error) {
     console.error('Error fetching donation:', error);
+    throw error;
+  }
+};
+
+// Get donation statistics for a donor
+export const getDonorStats = async (donorId: string) => {
+  try {
+    const donations = await getDonationsByDonor(donorId);
+    
+    const totalDonations = donations.length;
+    const totalAmountLKR = donations.reduce(
+      (sum: number, d: any) => sum + (d.amountLKR || 0),
+      0
+    );
+    const successfulDonations = donations.filter(
+      (d: any) => d.paymentStatus === 'succeeded'
+    ).length;
+    
+    return {
+      totalDonations,
+      totalAmountLKR,
+      successfulDonations,
+      donations,
+    };
+  } catch (error) {
+    console.error('Error fetching donor stats:', error);
     throw error;
   }
 };
