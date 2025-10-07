@@ -446,6 +446,29 @@ export const addComment = async (postId: string, userId: string, userName: strin
   }
 };
 
+export const deleteComment = async (commentId: string, userId: string): Promise<void> => {
+  try {
+    const comment = await databases.getDocument(
+      DATABASE_ID,
+      COMMENTS_TABLE_ID,
+      commentId
+    );
+    
+    if (comment.userId !== userId) {
+      throw new Error('You can only delete your own comments');
+    }
+    
+    await databases.deleteDocument(
+      DATABASE_ID,
+      COMMENTS_TABLE_ID,
+      commentId
+    );
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    throw error;
+  }
+};
+
 export const getCommentsByPostId = async (postId: string): Promise<Comment[]> => {
   try {
     const response = await databases.listDocuments(
@@ -487,14 +510,12 @@ export const getCommentCount = async (postId: string): Promise<number> => {
   }
 };
 
-// Get user statistics
 export const getUserStats = async (volunteerId: string): Promise<{
   totalPosts: number;
   totalReactions: number;
   totalComments: number;
 }> => {
   try {
-    // Get all posts by the volunteer
     const postsResponse = await databases.listDocuments(
       DATABASE_ID,
       COMMUNITY_POSTS_TABLE_ID
@@ -506,7 +527,6 @@ export const getUserStats = async (volunteerId: string): Promise<{
     
     const totalPosts = userPosts.length;
     
-    // Get all reactions for user's posts
     const reactionsResponse = await databases.listDocuments(
       DATABASE_ID,
       REACTIONS_TABLE_ID
@@ -516,7 +536,6 @@ export const getUserStats = async (volunteerId: string): Promise<{
       userPosts.some(post => post.$id === reaction.postId)
     ).length;
     
-    // Get all comments for user's posts
     const commentsResponse = await databases.listDocuments(
       DATABASE_ID,
       COMMENTS_TABLE_ID
@@ -541,7 +560,6 @@ export const getUserStats = async (volunteerId: string): Promise<{
   }
 };
 
-// Helper function to format time ago
 export const getTimeAgo = (dateString: string): string => {
   const now = new Date();
   const postDate = new Date(dateString);
