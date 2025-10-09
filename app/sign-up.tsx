@@ -1,7 +1,7 @@
 // app/sign-up.tsx
 import { Picker } from '@react-native-picker/picker';
 import React, { useState } from 'react';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'expo-router';
@@ -26,13 +26,34 @@ export default function SignUp() {
   };
 
   return (
-    <View className="flex-1 p-6 justify-center bg-white">
-      <Text className="text-2xl font-bold mb-4">Create an account</Text>
-      <TextInput placeholder="Full name" value={fullName} onChangeText={setFullName} className="border p-3 rounded mb-3" />
-      <TextInput placeholder="Email" value={email} keyboardType="email-address" onChangeText={setEmail} className="border p-3 rounded mb-3" />
-      <TextInput placeholder="Password" value={password} secureTextEntry onChangeText={setPassword} className="border p-3 rounded mb-3" />
-      <Text className="mb-2">Role</Text>
-      <View className="border rounded mb-4">
+    <ScrollView className="flex-1 bg-white p-6" contentContainerStyle={{ justifyContent: 'center', flexGrow: 1 }}>
+      <Text className="text-3xl font-bold text-center mb-6">Create an Account</Text>
+
+      <TextInput
+        placeholder="Full name"
+        value={fullName}
+        onChangeText={setFullName}
+        autoCapitalize="none"   // ensures keyboard is lowercase first
+        className="border border-gray-300 p-4 rounded-xl mb-4 bg-gray-50"
+      />
+      <TextInput
+        placeholder="Email"
+        value={email}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        onChangeText={setEmail}
+        className="border border-gray-300 p-4 rounded-xl mb-4 bg-gray-50"
+      />
+      <TextInput
+        placeholder="Password"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword}
+        className="border border-gray-300 p-4 rounded-xl mb-4 bg-gray-50"
+      />
+
+      <Text className="mb-2 font-medium">Role</Text>
+      <View className="border border-gray-300 rounded-xl mb-6 bg-gray-50">
         <Picker selectedValue={role} onValueChange={(v) => setRole(v)}>
           <Picker.Item label="Donor" value="donor" />
           <Picker.Item label="Beneficiary" value="beneficiary" />
@@ -40,13 +61,13 @@ export default function SignUp() {
         </Picker>
       </View>
 
-      <TouchableOpacity onPress={submit} className="bg-blue-500 p-4 rounded items-center">
-        <Text className="text-white font-bold">Sign Up</Text>
+      <TouchableOpacity onPress={submit} className="bg-blue-500 p-4 rounded-xl items-center shadow-md">
+        <Text className="text-white font-bold text-lg">Sign Up</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push('/sign-in')} className="mt-4 items-center">
-        <Text>Already have account? Sign in</Text>
+        <Text className="text-gray-600">Already have an account? Sign in</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
