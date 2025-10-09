@@ -32,7 +32,7 @@ type Donation = {
 };
 
 export default function DonorProfile() {
-  const { user, signOut } = useAuth();
+  const { user, signOut , deleteAccount } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +89,19 @@ export default function DonorProfile() {
       ]
     );
   };
+
+
+   const handleDelete = () => {
+      Alert.alert(
+        'Delete Account',
+        'Are you sure you want to delete your account? This action cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => deleteAccount() },
+        ]
+      );
+    };
+
 
   // Calculate statistics
   const totalDonated = donations.reduce((sum, d) => sum + d.amountLKR, 0);
@@ -299,6 +312,21 @@ export default function DonorProfile() {
               </View>
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
+
+              <TouchableOpacity
+              onPress={handleDelete}
+              className="flex-row items-center justify-between py-4 border-b border-gray-100"
+            >
+              <View className="flex-row items-center">
+                <Ionicons name="warning-outline" size={22} color="#DC2626" />
+                <Text className="text-base font-medium text-gray-800 ml-3">
+                  Delete Account
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+
+
           </View>
         </View>
       </ScrollView>
