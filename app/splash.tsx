@@ -42,7 +42,7 @@ export default function Splash() {
       if (user) router.replace('/(tabs)/home'); // logged in -> home
       else if (!hasOnboarded) router.replace('/onboard/1'); // new -> onboarding
       else router.replace('/sign-in'); // returning logged out -> sign in
-    }, 3000);
+    }, 1500);
   }, [loading, user, hasOnboarded]);
 
   return (
@@ -63,15 +63,26 @@ export default function Splash() {
           alignItems: 'center',
         }}
       >
+       
         {/* Logo with Glow Effect */}
         <View className="items-center justify-center mb-8">
           <View className="absolute w-32 h-32 rounded-full bg-[#007DBD] opacity-10" />
           <View className="absolute w-28 h-28 rounded-full bg-[#007DBD] opacity-20" />
-          <Image
-            source={require('../assets/images/logo.png')}
-            style={{ width: 140, height: 140 }}
-            resizeMode="contain"
-          />
+          <View
+            style={{
+              shadowColor: '#007DBD',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.3,
+              shadowRadius: 16,
+              elevation: 12,
+            }}
+          >
+            <Image
+              source={require('../assets/images/logo.png')}
+              style={{ width: 140, height: 140 }}
+              resizeMode="contain"
+            />
+          </View>
         </View>
 
         {/* App Name with Icon */}
