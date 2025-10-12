@@ -1,9 +1,35 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { createBeneficiaryPost, downloadEvidenceFile, updateHelpRequestStatus } from '../../../lib/admin';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  createBeneficiaryPost,
+  downloadEvidenceFile,
+  updateHelpRequestStatus,
+} from '../../../lib/admin';
 import { databases } from '../../../lib/appwrite';
+
+const COLORS = {
+  lightBlue: '#E0EEF7',
+  darkBlue: '#007DBD',
+  accentYellow: '#FFB900',
+  white: '#FFFFFF',
+  background: '#F5F9FC',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  success: '#10B981',
+  error: '#EF4444',
+  border: '#D1E0F0',
+};
 
 export default function RequestDetail() {
   const { id } = useLocalSearchParams();
@@ -17,8 +43,8 @@ export default function RequestDetail() {
     try {
       setLoading(true);
       const response = await databases.getDocument(
-        '68d797e8002551ac5a86', // DATABASE_ID
-        'helprequests', // TABLE_ID
+        '68d797e8002551ac5a86',
+        'helprequests',
         id as string
       );
       setRequest(response);
@@ -31,9 +57,7 @@ export default function RequestDetail() {
   };
 
   useEffect(() => {
-    if (id) {
-      fetchRequestDetail();
-    }
+    if (id) fetchRequestDetail();
   }, [id]);
 
   const handleStatusUpdate = async (status: string) => {
@@ -60,8 +84,7 @@ export default function RequestDetail() {
       setDownloading(true);
       const fileName = `evidence_${request.beneficiaryRequestCode}.pdf`;
       const localUri = await downloadEvidenceFile(request.evidenceFileIds, fileName);
-      
-      // Share the file
+
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(localUri);
       } else {
@@ -78,8 +101,7 @@ export default function RequestDetail() {
   const handleCreatePost = async () => {
     try {
       setUpdating(true);
-      
-      
+
       const postData = {
         helpRequestId: request.$id,
         beneficiaryRequestCode: request.beneficiaryRequestCode,
@@ -92,130 +114,347 @@ export default function RequestDetail() {
       };
 
       const createdPost = await createBeneficiaryPost(postData);
-      
-      Alert.alert(
-        'Success', 
-        'Post created successfully! Now add an image.',
-        [
-          {
-            text: 'Add Image',
-            onPress: () => router.push(`/admin/add-image/${createdPost.$id}` as any)
-          }
-        ]
-      );
-    } catch (error : any) {
+
+      Alert.alert('Success', 'Post created successfully! Now add an image.', [
+        {
+          text: 'Add Image',
+          onPress: () => router.push(`/admin/add-image/${createdPost.$id}` as any),
+        },
+      ]);
+    } catch (error: any) {
       console.error('Error creating post:', error);
-      console.error('Full error details:', JSON.stringify(error, null, 2));
       Alert.alert('Error', `Failed to create post: ${error.message || 'Unknown error'}`);
     } finally {
       setUpdating(false);
     }
   };
 
+  // Loading State
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-        <Text className="mt-2">Loading request details...</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View
+            style={{
+              backgroundColor: COLORS.lightBlue,
+              paddingHorizontal: 32,
+              paddingVertical: 40,
+              borderRadius: 24,
+              alignItems: 'center',
+              shadowColor: COLORS.darkBlue,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.15,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+          >
+            <ActivityIndicator size="large" color={COLORS.darkBlue} />
+            <Text
+              style={{
+                marginTop: 16,
+                color: COLORS.darkBlue,
+                fontWeight: '700',
+                fontSize: 16,
+                marginBottom: 8,
+              }}
+            >
+              Loading request details...
+            </Text>
+            <Text style={{ color: COLORS.textSecondary, fontSize: 13 }}>
+              Please wait
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
+  // Empty State
   if (!request) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <Text>Request not found</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View
+            style={{
+              backgroundColor: COLORS.lightBlue,
+              paddingHorizontal: 40,
+              paddingVertical: 48,
+              borderRadius: 24,
+              alignItems: 'center',
+              shadowColor: COLORS.darkBlue,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 4,
+            }}
+          >
+            <Ionicons name="alert-circle-outline" size={72} color={COLORS.darkBlue} />
+            <Text
+              style={{
+                color: COLORS.darkBlue,
+                marginTop: 16,
+                fontSize: 20,
+                fontWeight: '700',
+              }}
+            >
+              Request Not Found
+            </Text>
+            <Text style={{ color: COLORS.textSecondary, marginTop: 8, fontSize: 14 }}>
+              This request doesn't exist
+            </Text>
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
+  // Main Content
   return (
-    <ScrollView className="flex-1 bg-white p-4">
-      <Text className="text-2xl font-bold mb-4">Request Details</Text>
-      
-      {/* Request Info */}
-      <View className="bg-gray-100 p-4 rounded-lg mb-4">
-        <Text className="text-lg font-semibold mb-2">{request.fullName}</Text>
-        <Text className="mb-1">Code: {request.beneficiaryRequestCode}</Text>
-        <Text className="mb-1">Age: {request.age}</Text>
-        <Text className="mb-1">Location: {request.location}</Text>
-        <Text className="mb-1">Type: {request.typeOfHelp}</Text>
-        <Text className="mb-1">Amount: ${request.requestedAmount}</Text>
-        <Text className="mb-1">Urgency: {request.urgency}</Text>
-        <Text className="mb-1">Status: {request.status}</Text>
-      </View>
-
-      {/* Description */}
-      <View className="mb-4">
-        <Text className="text-lg font-semibold mb-2">Description</Text>
-        <Text className="text-gray-700">{request.description}</Text>
-      </View>
-
-      {/* Items Needed */}
-      <View className="mb-4">
-        <Text className="text-lg font-semibold mb-2">Items Needed</Text>
-        <Text className="text-gray-700">
-          {Array.isArray(request.itemsNeeded) ? request.itemsNeeded.join(', ') : request.itemsNeeded}
-        </Text>
-      </View>
-
-      {/* Payment Details */}
-      {request.paymentDetails && (
-        <View className="mb-4">
-          <Text className="text-lg font-semibold mb-2">Payment Details</Text>
-          <Text className="text-gray-700">{request.paymentDetails}</Text>
-        </View>
-      )}
-
-      {/* Evidence File */}
-      {request.evidenceFileIds && (
-        <TouchableOpacity
-          onPress={handleDownloadEvidence}
-          disabled={downloading}
-          className="bg-blue-500 p-3 rounded mb-4"
-        >
-          <Text className="text-white text-center font-semibold">
-            {downloading ? 'Downloading...' : 'Download Evidence File'}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Status Update Buttons */}
-      {request.status === 'Pending' && (
-        <View className="flex-row space-x-2 mb-4">
-          <TouchableOpacity
-            onPress={() => handleStatusUpdate('Approved')}
-            disabled={updating}
-            className="flex-1 bg-green-500 p-3 rounded mr-2"
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={{ marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: '800',
+              color: COLORS.darkBlue,
+              marginBottom: 8,
+            }}
           >
-            <Text className="text-white text-center font-semibold">Approve</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            onPress={() => handleStatusUpdate('Rejected')}
-            disabled={updating}
-            className="flex-1 bg-red-500 p-3 rounded ml-2"
+            Request Details
+          </Text>
+          <View
+            style={{
+              height: 5,
+              width: 60,
+              backgroundColor: COLORS.accentYellow,
+              borderRadius: 3,
+            }}
+          />
+        </View>
+
+        {/* Status Badge */}
+        <View
+          style={{
+            backgroundColor: COLORS.white,
+            borderRadius: 16,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            marginBottom: 20,
+            borderLeftWidth: 5,
+            borderLeftColor: COLORS.accentYellow,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 2,
+          }}
+        >
+          <Text style={{ fontSize: 12, color: COLORS.textSecondary, fontWeight: '600' }}>
+            Current Status
+          </Text>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: '700',
+              color: COLORS.darkBlue,
+              marginTop: 4,
+              textTransform: 'capitalize',
+            }}
           >
-            <Text className="text-white text-center font-semibold">Reject</Text>
+            {request.status}
+          </Text>
+        </View>
+
+        {/* Info Cards */}
+        <View style={{ backgroundColor: COLORS.white, borderRadius: 20, padding: 20, marginBottom: 24 }}>
+          {/* Beneficiary Name */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="person-circle-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Beneficiary Name
+              </Text>
+            </View>
+            <Text style={{ fontSize: 16, color: COLORS.textPrimary, fontWeight: '500' }}>
+              {request.fullName}
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: COLORS.border, marginBottom: 20 }} />
+
+          {/* Description */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="document-text-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Description
+              </Text>
+            </View>
+            <Text style={{ fontSize: 15, color: COLORS.textSecondary, lineHeight: 22 }}>
+              {request.description}
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: COLORS.border, marginBottom: 20 }} />
+
+          {/* Type of Help */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="heart-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Type of Help
+              </Text>
+            </View>
+            <Text style={{ fontSize: 16, color: COLORS.textPrimary, fontWeight: '500' }}>
+              {request.typeOfHelp}
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: COLORS.border, marginBottom: 20 }} />
+
+          {/* Items Needed */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="list-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Items Needed
+              </Text>
+            </View>
+            <Text style={{ fontSize: 15, color: COLORS.textSecondary, lineHeight: 22 }}>
+              {request.itemsNeeded}
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: COLORS.border, marginBottom: 20 }} />
+
+          {/* Amount */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="cash-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Requested Amount
+              </Text>
+            </View>
+            <Text style={{ fontSize: 20, color: COLORS.darkBlue, fontWeight: '700' }}>
+              Rs. {request.requestedAmount}
+            </Text>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: COLORS.border, marginBottom: 20 }} />
+
+          {/* Urgency */}
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="alert-outline" size={20} color={COLORS.darkBlue} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: COLORS.darkBlue, marginLeft: 8 }}>
+                Urgency Level
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: COLORS.lightBlue,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 8,
+                alignSelf: 'flex-start',
+              }}
+            >
+              <Text style={{ fontSize: 14, color: COLORS.darkBlue, fontWeight: '600' }}>
+                {request.urgency}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={{ gap: 10 }}>
+          {/* Approve */}
+          <TouchableOpacity
+            onPress={() => handleStatusUpdate('APPROVED')}
+            disabled={updating}
+            style={{
+              backgroundColor: '#D1FAE5',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: updating ? 0.6 : 1,
+            }}
+          >
+            <Ionicons name="checkmark" size={18} color={COLORS.success} />
+            <Text style={{ color: COLORS.success, fontWeight: '600', fontSize: 14, marginLeft: 8 }}>
+              {updating ? 'Updating...' : 'Approve'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Reject */}
+          <TouchableOpacity
+            onPress={() => handleStatusUpdate('REJECTED')}
+            disabled={updating}
+            style={{
+              backgroundColor: '#FEE2E2',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: updating ? 0.6 : 1,
+            }}
+          >
+            <Ionicons name="close" size={18} color={COLORS.error} />
+            <Text style={{ color: COLORS.error, fontWeight: '600', fontSize: 14, marginLeft: 8 }}>
+              {updating ? 'Updating...' : 'Reject'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Download Evidence */}
+          <TouchableOpacity
+            onPress={handleDownloadEvidence}
+            disabled={downloading}
+            style={{
+              backgroundColor: COLORS.lightBlue,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: downloading ? 0.6 : 1,
+            }}
+          >
+            <Ionicons name="download" size={18} color={COLORS.darkBlue} />
+            <Text style={{ color: COLORS.darkBlue, fontWeight: '600', fontSize: 14, marginLeft: 8 }}>
+              {downloading ? 'Downloading...' : 'Download Evidence'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Create Post */}
+          <TouchableOpacity
+            onPress={handleCreatePost}
+            disabled={updating}
+            style={{
+              backgroundColor: '#FEF3C7',
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              opacity: updating ? 0.6 : 1,
+            }}
+          >
+            <Ionicons name="add" size={18} color={COLORS.accentYellow} />
+            <Text style={{ color: COLORS.accentYellow, fontWeight: '600', fontSize: 14, marginLeft: 8 }}>
+              {updating ? 'Processing...' : 'Create Post'}
+            </Text>
           </TouchableOpacity>
         </View>
-      )}
-
-      {/* Create Post Button */}
-      {request.status === 'Approved' && (
-        <TouchableOpacity
-          onPress={handleCreatePost}
-          disabled={updating}
-          className="bg-purple-500 p-3 rounded mb-4"
-        >
-          <Text className="text-white text-center font-semibold">
-            {updating ? 'Creating Post...' : 'Create Public Post'}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-
-
