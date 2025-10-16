@@ -1,3 +1,4 @@
+import { LanguageProvider } from '@/context/LanguageContext';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -11,11 +12,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
         <AuthProvider>
+            <LanguageProvider>
           <Stack
             screenOptions={{
               headerShown: false, // 🚀 Hides the “Tabs” header above your main one
             }}
           />
+          </LanguageProvider>
         </AuthProvider>
       </StripeProvider>
     </SafeAreaProvider>
