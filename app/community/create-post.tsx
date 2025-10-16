@@ -1,6 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Calendar, Camera, Clock, FileText, MapPin, Tag, Type } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -78,15 +79,11 @@ export default function CreatePostScreen() {
   }, [isEditing, params.postId, userIsVolunteer]);
 
   const parseFormattedDate = (dateStr: string): Date => {
-    console.log('Parsing date string:', dateStr);
-    
-    // Handle various date formats
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     
-    // Try to match format like "September 30, 2025" or "September 30 2025"
     const datePattern = /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/;
     const match = dateStr.match(datePattern);
     
@@ -98,29 +95,21 @@ export default function CreatePostScreen() {
       const monthIndex = months.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
       
       if (monthIndex !== -1) {
-        const parsed = new Date(year, monthIndex, day);
-        console.log('Successfully parsed date:', parsed);
-        return parsed;
+        return new Date(year, monthIndex, day);
       }
     }
     
-    // Fallback: try standard Date parsing
     const fallback = new Date(dateStr);
     if (!isNaN(fallback.getTime())) {
-      console.log('Fallback date parsing succeeded:', fallback);
       return fallback;
     }
     
-    console.log('Date parsing failed, returning current date');
     return new Date();
   };
 
   const parseFormattedTime = (timeStr: string): Date => {
-    console.log('Parsing time string:', timeStr);
-    
     const timeDate = new Date();
     
-    // Match format like "02:30 PM" or "2:30 PM"
     const timePattern = /(\d{1,2}):(\d{2})\s*(AM|PM)/i;
     const match = timeStr.match(timePattern);
     
@@ -129,7 +118,6 @@ export default function CreatePostScreen() {
       const minutes = parseInt(match[2]);
       const period = match[3].toUpperCase();
       
-      // Convert to 24-hour format
       if (period === 'PM' && hours !== 12) {
         hours += 12;
       } else if (period === 'AM' && hours === 12) {
@@ -137,11 +125,9 @@ export default function CreatePostScreen() {
       }
       
       timeDate.setHours(hours, minutes, 0, 0);
-      console.log('Successfully parsed time:', timeDate);
       return timeDate;
     }
     
-    console.log('Time parsing failed, returning current time');
     return timeDate;
   };
 
@@ -149,8 +135,6 @@ export default function CreatePostScreen() {
     try {
       setLoadingExistingPost(true);
       const post = await getCommunityPostById(postId);
-
-      console.log('Loaded post:', post);
 
       if (post.volunteerId !== user.$id) {
         Alert.alert('Error', 'You can only edit your own posts', [
@@ -165,7 +149,6 @@ export default function CreatePostScreen() {
       setExistingImageUrl(post.imageUrl || '');
       setVenue(post.venue || '');
       
-      // Parse date and time
       if (post.date) {
         const parsedDate = parseFormattedDate(post.date);
         setDate(parsedDate);
@@ -345,9 +328,9 @@ export default function CreatePostScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <ScrollView className="flex-1" style={{ backgroundColor: '#E0EEF7' }}>
       <View className="p-4">
-        {/* Modified Header - Changed to dark blue (#007DBD) */}
+        {/* Header */}
         <View className="rounded-lg p-4 mb-4 shadow-sm" style={{ backgroundColor: '#007DBD' }}>
           <Text className="text-2xl font-bold text-center text-white">
             {isEditing ? 'Edit Post' : 'Create New Post'}
@@ -360,7 +343,11 @@ export default function CreatePostScreen() {
         </View>
 
         <View className="bg-white rounded-lg p-4 shadow-sm">
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Caption</Text>
+          {/* Caption */}
+          <View className="flex-row items-center mb-2">
+            <Type size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Caption</Text>
+          </View>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
             placeholder="Enter a caption for your post..."
@@ -370,7 +357,11 @@ export default function CreatePostScreen() {
             numberOfLines={3}
           />
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Event Title</Text>
+          {/* Event Title */}
+          <View className="flex-row items-center mb-2">
+            <FileText size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Event Title</Text>
+          </View>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
             placeholder="Enter event title..."
@@ -378,7 +369,11 @@ export default function CreatePostScreen() {
             onChangeText={setEventTitle}
           />
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Description</Text>
+          {/* Description */}
+          <View className="flex-row items-center mb-2">
+            <Tag size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Description</Text>
+          </View>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
             placeholder="Enter event description..."
@@ -388,10 +383,15 @@ export default function CreatePostScreen() {
             numberOfLines={4}
           />
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Event Image</Text>
+          {/* Image Upload */}
+          <View className="flex-row items-center mb-2">
+            <Camera size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Event Image</Text>
+          </View>
           <TouchableOpacity 
             onPress={pickImage}
-            className="border border-dashed border-gray-400 rounded-lg p-4 mb-4 items-center"
+            className="border border-dashed border-gray-300 rounded-lg p-4 mb-4 items-center"
+            style={{ backgroundColor: '#F9FAFB' }}
           >
             {selectedImage ? (
               <Image 
@@ -407,8 +407,18 @@ export default function CreatePostScreen() {
               />
             ) : (
               <View className="items-center py-8">
-                <Text className="text-6xl mb-2">📷</Text>
-                <Text className="text-gray-600">Tap to select image</Text>
+                <View style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: '#E0EEF7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                }}>
+                  <Camera size={32} color="#007DBD" />
+                </View>
+                <Text className="text-gray-600 font-semibold">Tap to select image</Text>
               </View>
             )}
             <Text className="text-blue-600 font-medium">
@@ -416,10 +426,15 @@ export default function CreatePostScreen() {
             </Text>
           </TouchableOpacity>
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Event Date</Text>
+          {/* Date Selection */}
+          <View className="flex-row items-center mb-2">
+            <Calendar size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Event Date</Text>
+          </View>
           <TouchableOpacity 
             onPress={() => setShowDatePicker(true)}
             className="border border-gray-300 rounded-lg p-3 mb-4"
+            style={{ backgroundColor: '#F9FAFB' }}
           >
             <Text className="text-gray-700">{formatDate(date)}</Text>
           </TouchableOpacity>
@@ -438,10 +453,15 @@ export default function CreatePostScreen() {
             />
           )}
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Event Time</Text>
+          {/* Time Selection */}
+          <View className="flex-row items-center mb-2">
+            <Clock size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Event Time</Text>
+          </View>
           <TouchableOpacity 
             onPress={() => setShowTimePicker(true)}
             className="border border-gray-300 rounded-lg p-3 mb-4"
+            style={{ backgroundColor: '#F9FAFB' }}
           >
             <Text className="text-gray-700">{formatTime(time)}</Text>
           </TouchableOpacity>
@@ -460,15 +480,24 @@ export default function CreatePostScreen() {
             />
           )}
 
-          <Text className="text-lg font-semibold text-blue-900 mb-2">Venue</Text>
+          {/* Venue */}
+          <View className="flex-row items-center mb-2">
+            <MapPin size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Venue</Text>
+          </View>
           <TextInput
             className="border border-gray-300 rounded-lg p-3 mb-4 text-gray-700"
             placeholder="Enter event venue..."
             value={venue}
             onChangeText={setVenue}
+            style={{ backgroundColor: '#F9FAFB' }}
           />
 
-          <Text className="text-lg font-semibold text-blue-900 mb-3">Categories</Text>
+          {/* Categories */}
+          <View className="flex-row items-center mb-3">
+            <Tag size={18} color="#007DBD" style={{ marginRight: 8 }} />
+            <Text className="text-lg font-semibold text-blue-900">Categories</Text>
+          </View>
           <View className="flex-row flex-wrap mb-6">
             {Object.entries(categories).map(([category, selected]) => (
               <TouchableOpacity
@@ -489,14 +518,14 @@ export default function CreatePostScreen() {
             ))}
           </View>
 
-          {/* Modified Submit Button - Changed to dark blue (#007DBD) */}
+          {/* Submit Button */}
           <TouchableOpacity 
             onPress={handleSubmit}
             disabled={loading}
-            className={`rounded-lg p-4 ${
-              loading ? 'bg-gray-400' : ''
-            }`}
-            style={!loading ? { backgroundColor: '#007DBD' } : {}}
+            className="rounded-lg p-4 shadow-sm"
+            style={{
+              backgroundColor: loading ? '#9CA3AF' : '#007DBD'
+            }}
           >
             <Text className="text-white text-center font-semibold text-lg">
               {loading 
@@ -506,6 +535,7 @@ export default function CreatePostScreen() {
             </Text>
           </TouchableOpacity>
 
+          {/* Cancel Button */}
           <TouchableOpacity 
             onPress={() => router.back()}
             className="border border-red-500 rounded-lg p-4 mt-3"

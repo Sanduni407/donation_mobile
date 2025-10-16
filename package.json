@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "node init && expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -22,6 +22,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@stripe/stripe-react-native": "0.50.3",
+    "axios": "^1.12.2",
     "expo": "~54.0.10",
     "expo-constants": "~18.0.9",
     "expo-document-picker": "~14.0.7",

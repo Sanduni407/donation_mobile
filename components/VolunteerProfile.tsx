@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Award, Calendar, Edit2, Heart, MapPin, MessageCircle, Plus, Star, Target, Trash2, TrendingUp, Users } from 'lucide-react-native';
+import { Award, Calendar, Crown, Edit2, Heart, MapPin, Medal, MessageCircle, Plus, Star, Target, Trash2, TrendingUp, Trophy, Users } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../lib/auth';
@@ -194,7 +195,7 @@ export default function VolunteerProfile() {
               <View style={{ width: 60, height: 4, backgroundColor: '#FFB900', borderRadius: 2 }} />
             </View>
             
-            {/* Modified Avatar - Smaller size, no yellow border, dark blue background */}
+            {/* Modified Avatar */}
             <View 
               style={{
                 width: 60,
@@ -305,7 +306,7 @@ export default function VolunteerProfile() {
                   borderColor: '#E0EEF7',
                 }}
               >
-                <Text className="text-white text-3xl font-light">+</Text>
+                <Plus size={28} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -314,7 +315,7 @@ export default function VolunteerProfile() {
         {/* Volunteer-specific features */}
         {userIsVolunteer && (
           <>
-            {/* Enhanced My Stats Section */}
+            {/* My Stats Section - KEEP AS IS */}
             <View className="rounded-xl p-5 mb-10 shadow-md" style={{ backgroundColor: '#007DBD' }}>
               <View className="flex-row items-center mb-4">
                 <TrendingUp size={24} color="#FFB900" />
@@ -352,60 +353,494 @@ export default function VolunteerProfile() {
               </View>
             </View>
 
-            {/* Enhanced Badges Section */}
+            {/* ENHANCED Badges and Achievements Section */}
             <View className="mb-10">
-              <View className="flex-row items-center mb-3">
-                <Award size={24} color="#007DBD" />
-                <Text className="text-2xl font-bold ml-2" style={{ color: '#007DBD' }}>Badges & Achievements</Text>
+              <View className="flex-row items-center mb-4">
+                <Trophy size={26} color="#FFB900" />
+                <Text className="text-2xl font-bold ml-2" style={{ color: '#007DBD' }}>
+                  Badges & Achievements
+                </Text>
               </View>
               
-              <View className="rounded-xl p-6 items-center" style={{ 
-                backgroundColor: '#FFFFFF',
-                borderWidth: 2,
-                borderColor: '#E0EEF7',
-                shadowColor: '#007DBD',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.1,
-                shadowRadius: 6,
-                elevation: 4,
-              }}>
-                <View style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 50,
-                  backgroundColor: '#E0EEF7',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 16,
-                  borderWidth: 4,
-                  borderColor: badgeLevel === 'Gold' ? '#FFB900' : badgeLevel === 'Silver' ? '#C0C0C0' : '#CD7F32',
-                }}>
-                  <Award size={50} color={badgeLevel === 'Gold' ? '#FFB900' : badgeLevel === 'Silver' ? '#C0C0C0' : '#CD7F32'} fill={badgeLevel === 'Gold' ? '#FFB900' : 'transparent'} />
+              <LinearGradient
+                colors={badgeLevel === 'Gold' ? ['#FFD700', '#FFA500'] : badgeLevel === 'Silver' ? ['#E8E8E8', '#C0C0C0'] : ['#CD7F32', '#8B4513']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 24,
+                  padding: 20,
+                  shadowColor: badgeLevel === 'Gold' ? '#FFB900' : '#000',
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 10,
+                  elevation: 10,
+                }}
+              >
+                {/* Decorative Stars */}
+                <View style={{ position: 'absolute', top: 10, left: 20 }}>
+                  <Star size={20} color="#FFFFFF" fill="#FFFFFF" opacity={0.3} />
                 </View>
-                
-                <Text className="text-4xl font-extrabold mb-2" style={{ 
-                  color: badgeLevel === 'Gold' ? '#FFB900' : badgeLevel === 'Silver' ? '#9CA3AF' : '#CD7F32' 
-                }}>
-                  {badgeLevel} Member
+                <View style={{ position: 'absolute', top: 20, right: 30 }}>
+                  <Star size={16} color="#FFFFFF" fill="#FFFFFF" opacity={0.4} />
+                </View>
+                <View style={{ position: 'absolute', bottom: 30, left: 40 }}>
+                  <Star size={14} color="#FFFFFF" fill="#FFFFFF" opacity={0.3} />
+                </View>
+                <View style={{ position: 'absolute', bottom: 20, right: 20 }}>
+                  <Star size={18} color="#FFFFFF" fill="#FFFFFF" opacity={0.35} />
+                </View>
+
+                <View style={{ alignItems: 'center' }}>
+                  {/* Badge Container with Glow */}
+                  <View style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: 70,
+                    backgroundColor: '#FFFFFF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 20,
+                    borderWidth: 6,
+                    borderColor: badgeLevel === 'Gold' ? '#FFB900' : badgeLevel === 'Silver' ? '#C0C0C0' : '#CD7F32',
+                    shadowColor: badgeLevel === 'Gold' ? '#FFB900' : '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 12,
+                    elevation: 12,
+                  }}>
+                    {badgeLevel === 'Gold' ? (
+                      <Crown size={70} color="#FFB900" fill="#FFB900" />
+                    ) : badgeLevel === 'Silver' ? (
+                      <Medal size={70} color="#C0C0C0" fill="#C0C0C0" />
+                    ) : (
+                      <Award size={70} color="#CD7F32" fill="#CD7F32" />
+                    )}
+                    
+                    {/* Small stars around badge */}
+                    {badgeLevel === 'Gold' && (
+                      <>
+                        <View style={{ position: 'absolute', top: 5, left: 20 }}>
+                          <Star size={16} color="#FFB900" fill="#FFB900" />
+                        </View>
+                        <View style={{ position: 'absolute', top: 5, right: 20 }}>
+                          <Star size={16} color="#FFB900" fill="#FFB900" />
+                        </View>
+                        <View style={{ position: 'absolute', bottom: 5, left: 30 }}>
+                          <Star size={14} color="#FFB900" fill="#FFB900" />
+                        </View>
+                        <View style={{ position: 'absolute', bottom: 5, right: 30 }}>
+                          <Star size={14} color="#FFB900" fill="#FFB900" />
+                        </View>
+                      </>
+                    )}
+                  </View>
+                  
+                  {/* Badge Title with Shadow */}
+                  <Text 
+                    className="text-4xl font-extrabold mb-3" 
+                    style={{ 
+                      color: '#FFFFFF',
+                      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                      textShadowOffset: { width: 0, height: 2 },
+                      textShadowRadius: 4,
+                    }}
+                  >
+                    {badgeLevel} Member
+                  </Text>
+                  
+                  {/* Description Card */}
+                  <View style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: 16,
+                    padding: 16,
+                    width: '100%',
+                    marginBottom: 16,
+                  }}>
+                    <Text className="text-center text-sm font-medium" style={{ color: '#000000', lineHeight: 20 }}>
+                      {badgeLevel === 'Gold' 
+                        ? '🎉 Congratulations! You\'ve achieved the highest honor as a Gold member for your outstanding contributions to the community!'
+                        : badgeLevel === 'Silver'
+                        ? '✨ Great work! You\'re making an amazing impact. Keep going to reach Gold status - just one more post needed!'
+                        : '🌟 Welcome to the journey! Share your volunteer experiences and events to earn Silver and Gold badges'}
+                    </Text>
+                  </View>
+                  
+                  {/* Progress Badge */}
+                  <View style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    borderRadius: 25,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}>
+                    <Target size={16} color="#007DBD" style={{ marginRight: 8 }} />
+                    <Text className="text-sm font-bold" style={{ color: '#007DBD' }}>
+                      {stats.totalPosts} / 5 Posts to Gold
+                    </Text>
+                  </View>
+
+                  {/* Mini Achievement Icons */}
+                  <View style={{ flexDirection: 'row', marginTop: 16, justifyContent: 'center', gap: 12 }}>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: stats.totalPosts >= 1 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.3)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Star size={18} color={stats.totalPosts >= 1 ? '#FFB900' : '#FFFFFF'} fill={stats.totalPosts >= 1 ? '#FFB900' : 'transparent'} />
+                    </View>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: stats.totalPosts >= 2 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.3)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Star size={18} color={stats.totalPosts >= 2 ? '#FFB900' : '#FFFFFF'} fill={stats.totalPosts >= 2 ? '#FFB900' : 'transparent'} />
+                    </View>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: stats.totalPosts >= 3 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.3)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Star size={18} color={stats.totalPosts >= 3 ? '#FFB900' : '#FFFFFF'} fill={stats.totalPosts >= 3 ? '#FFB900' : 'transparent'} />
+                    </View>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: stats.totalPosts >= 4 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.3)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Star size={18} color={stats.totalPosts >= 4 ? '#FFB900' : '#FFFFFF'} fill={stats.totalPosts >= 4 ? '#FFB900' : 'transparent'} />
+                    </View>
+                    <View style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: stats.totalPosts >= 5 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.3)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      <Crown size={18} color={stats.totalPosts >= 5 ? '#FFB900' : '#FFFFFF'} fill={stats.totalPosts >= 5 ? '#FFB900' : 'transparent'} />
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </View>
+
+            {/* Performance Analytics Section */}
+            <View className="mb-10">
+              <View className="flex-row items-center mb-4">
+                <TrendingUp size={26} color="#007DBD" />
+                <Text className="text-2xl font-bold ml-2" style={{ color: '#007DBD' }}>
+                  Performance Analytics
                 </Text>
-                
-                <Text className="text-center text-sm text-gray-600 mb-3 px-4">
-                  {badgeLevel === 'Gold' 
-                    ? 'Congratulations! You\'ve achieved the highest honor as a Gold member for your outstanding contributions'
-                    : badgeLevel === 'Silver'
-                    ? 'Great work! Keep going to reach Gold status. Just one more post needed!'
-                    : 'Welcome! Share your impact to earn Silver and Gold badges'}
-                </Text>
-                
-                <View style={{
-                  backgroundColor: '#E0EEF7',
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  marginTop: 8,
-                }}>
-                  <Text className="text-xs font-bold" style={{ color: '#007DBD' }}>
-                    {stats.totalPosts} / 5 Posts to Gold
+              </View>
+
+              {/* Engagement Graph */}
+              <View className="bg-white rounded-2xl p-5 mb-4 shadow-md" style={{ borderWidth: 1, borderColor: '#E0EEF7' }}>
+                <View className="flex-row items-center justify-between mb-4">
+                  <View className="flex-row items-center">
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#E0EEF7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 10,
+                    }}>
+                      <Heart size={20} color="#DC2626" />
+                    </View>
+                    <View>
+                      <Text className="text-lg font-bold" style={{ color: '#007DBD' }}>
+                        Engagement Overview
+                      </Text>
+                      <Text className="text-xs text-gray-500">
+                        Likes & Comments Activity
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Bar Chart for Engagement */}
+                <View className="mb-4">
+                  {/* Likes Bar */}
+                  <View className="mb-4">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center">
+                        <Heart size={16} color="#DC2626" fill="#DC2626" />
+                        <Text className="text-sm font-semibold ml-2" style={{ color: '#000000' }}>
+                          Total Likes
+                        </Text>
+                      </View>
+                      <Text className="text-sm font-bold" style={{ color: '#007DBD' }}>
+                        {stats.totalReactions}
+                      </Text>
+                    </View>
+                    <View className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                      <LinearGradient
+                        colors={['#DC2626', '#EF4444']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          height: '100%',
+                          width: `${Math.min((stats.totalReactions / Math.max(stats.totalReactions, stats.totalComments, 1)) * 100, 100)}%`,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          paddingLeft: 12,
+                        }}
+                      >
+                        <Text className="text-white text-xs font-bold">
+                          {stats.totalReactions > 0 ? `${stats.totalReactions} reactions` : ''}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  </View>
+
+                  {/* Comments Bar */}
+                  <View>
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-row items-center">
+                        <MessageCircle size={16} color="#007DBD" fill="#007DBD" />
+                        <Text className="text-sm font-semibold ml-2" style={{ color: '#000000' }}>
+                          Total Comments
+                        </Text>
+                      </View>
+                      <Text className="text-sm font-bold" style={{ color: '#007DBD' }}>
+                        {stats.totalComments}
+                      </Text>
+                    </View>
+                    <View className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                      <LinearGradient
+                        colors={['#007DBD', '#0096D6']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          height: '100%',
+                          width: `${Math.min((stats.totalComments / Math.max(stats.totalReactions, stats.totalComments, 1)) * 100, 100)}%`,
+                          borderRadius: 8,
+                          justifyContent: 'center',
+                          paddingLeft: 12,
+                        }}
+                      >
+                        <Text className="text-white text-xs font-bold">
+                          {stats.totalComments > 0 ? `${stats.totalComments} comments` : ''}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Summary Stats */}
+                <View className="flex-row justify-around pt-4 border-t border-gray-100">
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold" style={{ color: '#DC2626' }}>
+                      {stats.totalReactions + stats.totalComments}
+                    </Text>
+                    <Text className="text-xs text-gray-500 mt-1">Total Interactions</Text>
+                  </View>
+                  <View style={{ width: 1, backgroundColor: '#E0EEF7' }} />
+                  <View className="items-center">
+                    <Text className="text-2xl font-bold" style={{ color: '#007DBD' }}>
+                      {stats.totalPosts > 0 ? Math.round((stats.totalReactions + stats.totalComments) / stats.totalPosts) : 0}
+                    </Text>
+                    <Text className="text-xs text-gray-500 mt-1">Avg per Post</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Performance Graph */}
+              <View className="bg-white rounded-2xl p-5 shadow-md" style={{ borderWidth: 1, borderColor: '#E0EEF7' }}>
+                <View className="flex-row items-center justify-between mb-4">
+                  <View className="flex-row items-center">
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#E0EEF7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 10,
+                    }}>
+                      <Target size={20} color="#007DBD" />
+                    </View>
+                    <View>
+                      <Text className="text-lg font-bold" style={{ color: '#007DBD' }}>
+                        Posting Activity
+                      </Text>
+                      <Text className="text-xs text-gray-500">
+                        Content Creation Progress
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Circular Progress Indicator */}
+                <View className="items-center py-6">
+                  <View style={{ position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* Background Circle */}
+                    <View style={{
+                      width: 140,
+                      height: 140,
+                      borderRadius: 70,
+                      backgroundColor: '#E0EEF7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      {/* Inner Circle */}
+                      <View style={{
+                        width: 110,
+                        height: 110,
+                        borderRadius: 55,
+                        backgroundColor: '#FFFFFF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 8,
+                        borderColor: stats.totalPosts >= 5 ? '#FFB900' : stats.totalPosts >= 3 ? '#007DBD' : '#94A3B8',
+                      }}>
+                        <Target size={36} color={stats.totalPosts >= 5 ? '#FFB900' : '#007DBD'} />
+                        <Text className="text-3xl font-bold mt-2" style={{ color: '#007DBD' }}>
+                          {stats.totalPosts}
+                        </Text>
+                        <Text className="text-xs text-gray-500">Posts</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Milestone Progress */}
+                <View className="mt-4">
+                  <Text className="text-sm font-semibold mb-3" style={{ color: '#000000' }}>
+                    Milestone Progress
+                  </Text>
+                  
+                  {/* Progress Bar */}
+                  <View className="mb-4">
+                    <View className="flex-row justify-between mb-2">
+                      <Text className="text-xs text-gray-500">Current Progress</Text>
+                      <Text className="text-xs font-bold" style={{ color: '#007DBD' }}>
+                        {Math.min(Math.round((stats.totalPosts / 10) * 100), 100)}%
+                      </Text>
+                    </View>
+                    <View className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <LinearGradient
+                        colors={['#007DBD', '#FFB900']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{
+                          height: '100%',
+                          width: `${Math.min((stats.totalPosts / 10) * 100, 100)}%`,
+                          borderRadius: 8,
+                        }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Milestones */}
+                  <View className="flex-row justify-between">
+                    <View className="items-center" style={{ opacity: stats.totalPosts >= 1 ? 1 : 0.4 }}>
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: stats.totalPosts >= 1 ? '#FFB900' : '#E0EEF7',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 4,
+                      }}>
+                        <Star size={16} color={stats.totalPosts >= 1 ? '#FFFFFF' : '#94A3B8'} fill={stats.totalPosts >= 1 ? '#FFFFFF' : 'transparent'} />
+                      </View>
+                      <Text className="text-xs font-semibold" style={{ color: stats.totalPosts >= 1 ? '#000000' : '#94A3B8' }}>
+                        1
+                      </Text>
+                    </View>
+
+                    <View className="items-center" style={{ opacity: stats.totalPosts >= 3 ? 1 : 0.4 }}>
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: stats.totalPosts >= 3 ? '#FFB900' : '#E0EEF7',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 4,
+                      }}>
+                        <Award size={16} color={stats.totalPosts >= 3 ? '#FFFFFF' : '#94A3B8'} />
+                      </View>
+                      <Text className="text-xs font-semibold" style={{ color: stats.totalPosts >= 3 ? '#000000' : '#94A3B8' }}>
+                        3
+                      </Text>
+                    </View>
+
+                    <View className="items-center" style={{ opacity: stats.totalPosts >= 5 ? 1 : 0.4 }}>
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: stats.totalPosts >= 5 ? '#FFB900' : '#E0EEF7',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 4,
+                      }}>
+                        <Medal size={16} color={stats.totalPosts >= 5 ? '#FFFFFF' : '#94A3B8'} />
+                      </View>
+                      <Text className="text-xs font-semibold" style={{ color: stats.totalPosts >= 5 ? '#000000' : '#94A3B8' }}>
+                        5
+                      </Text>
+                    </View>
+
+                    <View className="items-center" style={{ opacity: stats.totalPosts >= 10 ? 1 : 0.4 }}>
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: stats.totalPosts >= 10 ? '#FFB900' : '#E0EEF7',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 4,
+                      }}>
+                        <Crown size={16} color={stats.totalPosts >= 10 ? '#FFFFFF' : '#94A3B8'} />
+                      </View>
+                      <Text className="text-xs font-semibold" style={{ color: stats.totalPosts >= 10 ? '#000000' : '#94A3B8' }}>
+                        10
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Performance Summary */}
+                <View className="mt-4 p-4 rounded-xl" style={{ backgroundColor: '#E0EEF7' }}>
+                  <View className="flex-row items-center mb-2">
+                    <TrendingUp size={18} color="#007DBD" />
+                    <Text className="text-sm font-bold ml-2" style={{ color: '#007DBD' }}>
+                      Performance Summary
+                    </Text>
+                  </View>
+                  <Text className="text-xs leading-5" style={{ color: '#000000' }}>
+                    {stats.totalPosts >= 10 
+                      ? '🎉 Outstanding! You\'re a top contributor with 10+ posts!'
+                      : stats.totalPosts >= 5
+                      ? '⭐ Excellent work! You\'ve achieved Gold status. Keep sharing!'
+                      : stats.totalPosts >= 3
+                      ? '💪 Great progress! Just 2 more posts to reach Gold level!'
+                      : stats.totalPosts >= 1
+                      ? '🌱 Good start! Keep posting to build your community impact!'
+                      : '🚀 Ready to start? Create your first post to begin your journey!'}
                   </Text>
                 </View>
               </View>
@@ -483,7 +918,7 @@ export default function VolunteerProfile() {
         )}
       </View>
 
-      {/* Logout Button - Original Format */}
+      {/* Logout Button */}
       <View className="p-4 pt-8">
         <TouchableOpacity 
           onPress={() => signOut()} 
