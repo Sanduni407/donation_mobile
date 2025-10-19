@@ -117,4 +117,43 @@ export const updateHelpRequest = async (documentId: string, data: Partial<HelpRe
     throw error;
   }
 };
+// Get beneficiary statistics
+export const getBeneficiaryStats = async (userId: string) => {
+  try {
+    const requests = await getUserHelpRequests(userId);
+    
+    // Calculate total donations received (from approved requests)
+    let totalDonations = 0;
+    requests.forEach((request: any) => {
+      if (request.status === 'Approved' && request.collectedAmount) {
+        totalDonations += request.collectedAmount;
+      }
+    });
+    
+    // Count active requests (Pending + Approved)
+    const activeRequests = requests.filter(
+      (req: any) => req.status === 'Pending' || req.status === 'Approved'
+    ).length;
+    
+    // Count pending requests
+    const pendingRequests = requests.filter(
+      (req: any) => req.status === 'Pending'
+    ).length;
+    
+    return {
+      totalDonations,
+      activeRequests,
+      pendingRequests,
+      totalRequests: requests.length,
+    };
+  } catch (error) {
+    console.error('Error getting beneficiary stats:', error);
+    return {
+      totalDonations: 0,
+      activeRequests: 0,
+      pendingRequests: 0,
+      totalRequests: 0,
+    };
+  }
+};
 

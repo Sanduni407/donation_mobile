@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import HelpRequestCard from '../components/HelpRequestCard';
 import { useAuth } from '../lib/auth';
-import { getUserHelpRequests } from '../lib/beneficiary';
+import { getBeneficiaryStats, getUserHelpRequests } from '../lib/beneficiary';
 
 const COLORS = {
   lightBlue: '#E0EEF7',
@@ -25,6 +25,11 @@ export default function BeneficiaryProfile() {
   const router = useRouter();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalDonations: 0,
+    activeRequests: 0,
+    pendingRequests: 0,
+  });
 
   const fetchRequests = async () => {
     if (!user) return;
@@ -40,13 +45,29 @@ export default function BeneficiaryProfile() {
     }
   };
 
+  const fetchStats = async () => {
+    if (!user) return;
+    try {
+      const beneficiaryStats = await getBeneficiaryStats(user.$id);
+      setStats({
+        totalDonations: beneficiaryStats.totalDonations,
+        activeRequests: beneficiaryStats.activeRequests,
+        pendingRequests: beneficiaryStats.pendingRequests,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchRequests();
+    fetchStats();
   }, [user]);
 
   useFocusEffect(
     useCallback(() => {
       fetchRequests();
+      fetchStats();
     }, [user])
   );
 
@@ -82,32 +103,67 @@ export default function BeneficiaryProfile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
-      {/* Header */}
-      <View style={{ backgroundColor: COLORS.darkBlue, paddingHorizontal: 16, paddingVertical: 16, paddingTop: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <TouchableOpacity
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: COLORS.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 2,
-          }}
-        >
-          <Image
-            source={{ uri: 'https://via.placeholder.com/44' }}
-            style={{ width: 44, height: 44, borderRadius: 22 }}
-          />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: COLORS.white }}>Dashboard</Text>
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color={COLORS.white} />
-        </TouchableOpacity>
+      {/* Enhanced Header */}
+      <View style={{ 
+        backgroundColor: COLORS.darkBlue, 
+        paddingHorizontal: 20, 
+        paddingVertical: 20, 
+        paddingTop: 50,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+      }}>
+        {/* Profile Section */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+          {/* Profile Avatar */}
+          <TouchableOpacity
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: COLORS.white,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.2,
+              shadowRadius: 6,
+              elevation: 5,
+              borderWidth: 3,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}
+          >
+            {user?.prefs?.avatar ? (
+              <Image
+                source={{ uri: user.prefs.avatar }}
+                style={{ width: 56, height: 56, borderRadius: 28 }}
+              />
+            ) : (
+              <Ionicons name="person" size={28} color={COLORS.darkBlue} />
+            )}
+          </TouchableOpacity>
+
+          {/* User Info */}
+          <View style={{ marginLeft: 14, flex: 1 }}>
+            <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.85)', marginBottom: 2 }}>
+              Welcome back! 👋
+            </Text>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.white }} numberOfLines={1}>
+              {user.name || 'Beneficiary'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Dashboard Title */}
+        <View style={{ marginTop: 8 }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.white, letterSpacing: 0.5 }}>
+            My Dashboard
+          </Text>
+        </View>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
@@ -136,7 +192,7 @@ export default function BeneficiaryProfile() {
                 Donations
               </Text>
               <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.darkBlue, marginTop: 4 }}>
-                $1,250
+                LKR {stats.totalDonations.toFixed(0)}
               </Text>
             </View>
 
@@ -159,7 +215,7 @@ export default function BeneficiaryProfile() {
                 Active
               </Text>
               <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.darkBlue, marginTop: 4 }}>
-                {requests.filter(r => r.status === 'active').length}
+                {stats.activeRequests}
               </Text>
             </View>
 
@@ -182,7 +238,7 @@ export default function BeneficiaryProfile() {
                 Pending
               </Text>
               <Text style={{ fontSize: 20, fontWeight: '800', color: COLORS.darkBlue, marginTop: 4 }}>
-                {requests.filter(r => r.status === 'pending').length}
+                {stats.pendingRequests}
               </Text>
             </View>
           </View>
